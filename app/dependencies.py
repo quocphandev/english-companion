@@ -40,11 +40,16 @@ def get_harness() -> ChatHarness:
     return ChatHarness(get_provider(), get_settings().ai_max_output_tokens)
 
 
+def get_daily_ai_limit() -> int:
+    return get_settings().daily_ai_limit
+
+
 def get_conversation_service(
     session: Annotated[Session, Depends(get_session)],
     harness: Annotated[ChatHarness, Depends(get_harness)],
+    daily_ai_limit: Annotated[int, Depends(get_daily_ai_limit)],
 ) -> ConversationService:
-    return ConversationService(session, harness)
+    return ConversationService(session, harness, daily_ai_limit)
 
 
 ConversationServiceDep = Annotated[

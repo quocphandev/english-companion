@@ -32,12 +32,21 @@ class TurnResult(BaseModel):
     reply: TurnReply | None = None
     attempts: int
     error: ErrorBody | None = None
+    duration_ms: int = 0
 
 
 class ChatHarness:
     def __init__(self, provider: AIProvider, max_output_tokens: int) -> None:
         self._provider = provider
         self._max_output_tokens = max_output_tokens
+
+    @property
+    def provider_name(self) -> str:
+        return self._provider.provider_name
+
+    @property
+    def model_name(self) -> str:
+        return self._provider.model_name
 
     def run_turn(self, context: TurnContext) -> TurnResult:
         started = time.perf_counter()
@@ -51,8 +60,7 @@ class ChatHarness:
                 result = TurnResult(
                     status="failed", attempts=attempt, error=error.to_error_body()
                 )
-                log_turn(result, started)
-                return result
+                return finish_turn(result, started)
             try:
                 reply = TurnReply.model_validate_json(raw_text)
             except ValidationError as error:
@@ -64,16 +72,14 @@ class ChatHarness:
                 request = add_repair_messages(request, raw_text, error)
                 continue
             result = TurnResult(status="succeeded", reply=reply, attempts=attempt)
-            log_turn(result, started)
-            return result
+            return finish_turn(result, started)
 
         result = TurnResult(
             status="failed",
             attempts=MAX_CALLS_PER_TURN,
             error=INVALID_AI_OUTPUT_ERROR,
         )
-        log_turn(result, started)
-        return result
+        return finish_turn(result, started)
 
 
 def format_validation_errors(error: ValidationError) -> str:
@@ -101,9 +107,9 @@ def add_repair_messages(
     )
 
 
-def log_turn(result: TurnResult, started: float) -> None:
-    """Log metadata only, never conversation content."""
-    duration_ms = round((time.perf_counter() - started) * 1000)
+def finish_turn(result: TurnResult, started: float) -> TurnResult:
+    """Record the duration and log metadata only, never conversation content."""
+    result.duration_ms = duration_ms = round((time.perf_counter() - started) * 1000)
     logger.info(
         "Chat turn finished: status=%s attempts=%d error=%s duration_ms=%d",
         result.status,
@@ -111,3 +117,4 @@ def log_turn(result: TurnResult, started: float) -> None:
         result.error.code if result.error else "-",
         duration_ms,
     )
+    return result

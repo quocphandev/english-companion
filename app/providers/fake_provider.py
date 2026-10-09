@@ -24,6 +24,9 @@ DEFAULT_FAKE_REPLY = TurnReply(
 class FakeProvider(AIProvider):
     """Always returns the same valid JSON reply."""
 
+    provider_name = "fake"
+    model_name = "fake"
+
     def __init__(self, reply: TurnReply = DEFAULT_FAKE_REPLY) -> None:
         self._reply = reply
 

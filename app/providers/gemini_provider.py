@@ -54,6 +54,8 @@ BLOCKED_FINISH_REASONS = frozenset(
 
 
 class GeminiProvider(AIProvider):
+    provider_name = "gemini"
+
     def __init__(
         self,
         *,
@@ -66,6 +68,7 @@ class GeminiProvider(AIProvider):
         """`client` lets tests inject a fake; by default a real one is created lazily."""
         self._api_key = api_key
         self._model = model
+        self.model_name = model
         self._timeout_ms = timeout_seconds * 1000
         self._thinking_level = thinking_level
         self._client = client
