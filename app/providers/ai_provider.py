@@ -35,6 +35,10 @@ class AIProvider(ABC):
     (bad key, timeout, rate limit, blocked content, server or network errors).
     """
 
+    # Recorded in ai_runs (metadata only). Subclasses override these.
+    provider_name: str = "unknown"
+    model_name: str = ""
+
     @abstractmethod
     def complete(self, request: ProviderRequest) -> ProviderResponse:
         """Send one request and return the model's raw text output."""

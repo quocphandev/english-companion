@@ -39,6 +39,14 @@ def request_id_conflict() -> AppError:
     )
 
 
+def daily_limit_reached(limit: int) -> AppError:
+    return AppError(
+        "daily_limit_reached",
+        f"Bạn đã dùng hết {limit} lượt AI hôm nay. Câu của bạn vẫn được giữ, hãy quay lại vào ngày mai.",
+        http_status=status.HTTP_429_TOO_MANY_REQUESTS,
+    )
+
+
 # Validation error types raised by our schemas, mapped to user-facing messages.
 VALIDATION_MESSAGES_VI = {
     "empty_message": "Bạn chưa nhập nội dung.",
