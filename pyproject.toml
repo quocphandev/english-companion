@@ -1,6 +1,9 @@
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
+markers = [
+    "live_ai: calls the real Gemini API; skipped unless RUN_LIVE_AI=1",
+]
 
 [tool.ruff.lint.isort]
 # The local alembic/ folder makes ruff think "alembic" is our own package.

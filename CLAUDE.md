@@ -15,7 +15,7 @@ Chatbot cá nhân giúp người Việt luyện giao tiếp tiếng Anh: chat, s
 
 ## Giai đoạn hiện tại
 
-Mốc 1 (khung dự án): FastAPI + Postgres + fake provider, chat giả lập, lịch sử còn sau restart.
+Mốc 2 (Gemini và sửa lỗi): GeminiProvider qua gói `google-genai`, schema + harness, hai chế độ sửa lỗi, trợ giúp khi bí. Mốc 1 đã xong.
 Cập nhật dòng này mỗi khi qua mốc mới (xem bảng mốc trong `docs/SPEC.md` mục 10).
 Việc đang làm và bước tiếp theo nằm trong `progress.md`; đọc file đó đầu mỗi phiên.
 
@@ -24,6 +24,7 @@ Việc đang làm và bước tiếp theo nằm trong `progress.md`; đọc file
 - Python 3.12, FastAPI, Jinja2 (render HTML phía server), JavaScript thuần cho tương tác nhỏ. Không dùng React.
 - PostgreSQL 17 chạy bằng Docker Compose. SQLAlchemy 2.0 (kiểu `Mapped[...]`) và Alembic cho migration. Driver `psycopg` (v3).
 - Pydantic v2 cho schema request/response và kiểm tra JSON do AI trả về. `pydantic-settings` đọc cấu hình từ `.env`.
+- AI trong ứng dụng: Gemini API qua gói `google-genai` (key lấy ở Google AI Studio). Không dùng thư viện `anthropic`. Tên model đọc từ `GEMINI_MODEL`, không hardcode trong code.
 - pytest cho test, ruff cho lint và format.
 - Spec gốc nhắc SQLite; dự án đã chuyển sang Postgres. Khi spec và file này khác nhau, file này đúng.
 
@@ -41,6 +42,7 @@ alembic upgrade head                     # áp dụng migration
 alembic revision --autogenerate -m "msg" # tạo migration mới, PHẢI đọc lại file trước khi áp dụng
 pytest                                   # chạy toàn bộ test
 pytest tests/unit -q                     # chạy nhanh phần unit
+$env:RUN_LIVE_AI="1"; pytest tests/live -s  # smoke test Gemini thật (PowerShell), CHỈ khi được yêu cầu, tối đa 3 call
 node --test "tests/js/**/*.test.mjs"  # test JS thuần (Node 22, không npm, không thư viện)
 ruff check . && ruff format .            # lint và format
 ```
@@ -56,7 +58,7 @@ app/
   routers/           # nhận request, validate đầu vào, trả lỗi có cấu trúc. Không chứa nghiệp vụ
   services/          # conversation_service, vocabulary_service: nghiệp vụ
   harness/           # ghép context, gọi provider, validate JSON, giới hạn vòng sửa
-  providers/         # ai_provider (interface), fake_provider, claude_provider; speech_provider (giai đoạn 2)
+  providers/         # ai_provider (interface), fake_provider, gemini_provider; speech_provider (giai đoạn 2)
   repositories/      # truy vấn DB, transaction
   models/            # SQLAlchemy models
   schemas/           # Pydantic schemas
@@ -91,10 +93,11 @@ Luồng phụ thuộc một chiều: router → service → harness/repository �
 ## AI, harness và chi phí
 
 - `AI_PROVIDER=fake` là mặc định cho dev và test. Test tự động KHÔNG BAO GIỜ gọi API thật.
-- Chỉ gọi Claude thật khi tôi yêu cầu rõ, dưới dạng smoke test ngắn, có giới hạn số lượt.
+- Chỉ gọi Gemini thật khi tôi yêu cầu rõ, dưới dạng smoke test ngắn (bật bằng `RUN_LIVE_AI=1`), có giới hạn số lượt.
 - Đầu ra AI phải qua Pydantic validation. JSON sai thì yêu cầu sửa một lần; tổng tối đa 2 call/tác vụ. Vẫn sai thì trả trạng thái `failed`, không hiển thị JSON thô.
 - Prompt tách rõ phần hệ thống và phần người dùng. Coi nội dung người dùng và nội dung AI là dữ liệu không tin cậy: escape khi render HTML, không cho AI thực thi shell, SQL hay HTML.
-- Có timeout (30 giây/call), `max_tokens` và hạn mức lượt/ngày lấy từ cấu hình. Không tự retry mạng liên tục.
+- Có timeout (30 giây/call), `max_tokens` và hạn mức lượt/ngày lấy từ cấu hình. Không tự retry mạng liên tục; không bật `retry_options` của SDK Gemini (mặc định SDK không retry).
+- Lỗi provider (key sai, timeout, 429, bị chặn, 5xx, mạng) đổi thành `{code, message_vi, retryable}`; không lộ key hay nội dung lỗi gốc cho client.
 - Test chất lượng AI không assert nguyên văn; chỉ kiểm tra cấu trúc, và việc đúng-sai về ý nghĩa do người review.
 
 ## Bảo mật (không thương lượng)

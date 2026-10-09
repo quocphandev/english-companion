@@ -10,6 +10,7 @@ from app.harness.chat_harness import ChatHarness, TurnResult
 from app.harness.context import MAX_HISTORY_MESSAGES, ChatTurn, TurnContext
 from app.harness.prompts import PROMPT_VERSION
 from app.models import Conversation, Message
+from app.providers.errors import ProviderError
 from app.repositories.conversation_repository import ConversationRepository
 from app.schemas.conversation import (
     ConversationHistory,
@@ -24,17 +25,6 @@ from app.schemas.conversation import (
 from app.schemas.error import ErrorBody
 
 logger = logging.getLogger(__name__)
-
-INVALID_AI_OUTPUT_ERROR = ErrorBody(
-    code="invalid_ai_output",
-    message_vi="AI trả về dữ liệu không hợp lệ. Câu của bạn vẫn được giữ, hãy thử lại.",
-    retryable=True,
-)
-AI_UNAVAILABLE_ERROR = ErrorBody(
-    code="ai_unavailable",
-    message_vi="Không gọi được AI lúc này. Câu của bạn vẫn được giữ, hãy thử lại.",
-    retryable=True,
-)
 
 
 class ConversationService:
@@ -123,7 +113,11 @@ class ConversationService:
         try:
             result = self._harness.run_turn(context)
         except Exception:
-            logger.exception("AI call failed: message_id=%d", user_message.id)
+            # Expected provider failures come back as a failed TurnResult;
+            # this only catches unexpected bugs so the turn never stays pending.
+            logger.exception(
+                "Unexpected error in chat turn: message_id=%d", user_message.id
+            )
             result = None
 
         # Transaction 2: reply + corrections + status change are saved together.
@@ -206,10 +200,8 @@ def ensure_same_request(
 
 def failure_error(result: TurnResult | None) -> ErrorBody | None:
     if result is None:
-        return AI_UNAVAILABLE_ERROR
-    if result.status == "failed":
-        return INVALID_AI_OUTPUT_ERROR
-    return None
+        return ProviderError("ai_unavailable").to_error_body()
+    return result.error
 
 
 def to_message_out(message: Message) -> MessageOut:

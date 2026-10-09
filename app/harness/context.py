@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 from app.harness.prompts import SYSTEM_PROMPT_TEMPLATE, turn_reply_schema
 from app.providers.ai_provider import ProviderMessage, ProviderRequest
+from app.schemas.ai import TurnReply
 
 MAX_HISTORY_MESSAGES = 20
 
@@ -52,4 +53,5 @@ def build_request(context: TurnContext, max_tokens: int) -> ProviderRequest:
         system=build_system_prompt(context),
         messages=build_messages(context),
         max_tokens=max_tokens,
+        response_schema=TurnReply.model_json_schema(),
     )

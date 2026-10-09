@@ -1,7 +1,7 @@
 """The AIProvider interface and the request/response types it uses."""
 
 from abc import ABC, abstractmethod
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel
 
@@ -17,6 +17,9 @@ class ProviderRequest(BaseModel):
     system: str
     messages: list[ProviderMessage]
     max_tokens: int
+    # JSON schema the answer must follow. Providers with structured output use it;
+    # the harness validates the answer with Pydantic either way.
+    response_schema: dict[str, Any] | None = None
 
 
 class ProviderResponse(BaseModel):
@@ -26,7 +29,11 @@ class ProviderResponse(BaseModel):
 
 
 class AIProvider(ABC):
-    """Contract every AI backend (fake, Claude) must fulfil."""
+    """Contract every AI backend (fake, Gemini) must fulfil.
+
+    Implementations raise app.providers.errors.ProviderError for failures
+    (bad key, timeout, rate limit, blocked content, server or network errors).
+    """
 
     @abstractmethod
     def complete(self, request: ProviderRequest) -> ProviderResponse:

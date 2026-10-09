@@ -3,7 +3,7 @@
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import SecretStr
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -18,11 +18,15 @@ class Settings(BaseSettings):
     test_database_url: str | None = None
 
     # AI
-    ai_provider: Literal["fake", "claude"] = "fake"
-    anthropic_api_key: SecretStr = SecretStr("")
-    anthropic_model: str = ""
-    ai_max_output_tokens: int = 800
-    daily_ai_limit: int = 100
+    ai_provider: Literal["fake", "gemini"] = "fake"
+    gemini_api_key: SecretStr = SecretStr("")
+    # Model name comes only from configuration, never hardcoded.
+    gemini_model: str = ""
+    # Empty means "use the model's default thinking level".
+    gemini_thinking_level: Literal["", "minimal", "low", "medium", "high"] = ""
+    ai_max_output_tokens: int = Field(default=800, gt=0)
+    ai_timeout_seconds: int = Field(default=30, gt=0)
+    daily_ai_limit: int = Field(default=100, ge=0)
 
 
 @lru_cache
