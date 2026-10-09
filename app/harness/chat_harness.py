@@ -9,12 +9,20 @@ from pydantic import BaseModel, ValidationError
 from app.harness.context import TurnContext, build_request
 from app.harness.prompts import REPAIR_INSTRUCTION_TEMPLATE
 from app.providers.ai_provider import AIProvider, ProviderMessage, ProviderRequest
+from app.providers.errors import ProviderError
 from app.schemas.ai import TurnReply
+from app.schemas.error import ErrorBody
 
 logger = logging.getLogger(__name__)
 
 # One normal call plus at most one repair call per turn.
 MAX_CALLS_PER_TURN = 2
+
+INVALID_AI_OUTPUT_ERROR = ErrorBody(
+    code="invalid_ai_output",
+    message_vi="AI trả về dữ liệu không hợp lệ. Câu của bạn vẫn được giữ, hãy thử lại.",
+    retryable=True,
+)
 
 
 class TurnResult(BaseModel):
@@ -23,7 +31,7 @@ class TurnResult(BaseModel):
     status: Literal["succeeded", "failed"]
     reply: TurnReply | None = None
     attempts: int
-    error_code: str | None = None
+    error: ErrorBody | None = None
 
 
 class ChatHarness:
@@ -36,7 +44,15 @@ class ChatHarness:
         request = build_request(context, self._max_output_tokens)
 
         for attempt in range(1, MAX_CALLS_PER_TURN + 1):
-            raw_text = self._provider.complete(request).text
+            try:
+                raw_text = self._provider.complete(request).text
+            except ProviderError as error:
+                # Provider failures (timeout, rate limit, bad key...) are never retried here.
+                result = TurnResult(
+                    status="failed", attempts=attempt, error=error.to_error_body()
+                )
+                log_turn(result, started)
+                return result
             try:
                 reply = TurnReply.model_validate_json(raw_text)
             except ValidationError as error:
@@ -54,7 +70,7 @@ class ChatHarness:
         result = TurnResult(
             status="failed",
             attempts=MAX_CALLS_PER_TURN,
-            error_code="invalid_ai_output",
+            error=INVALID_AI_OUTPUT_ERROR,
         )
         log_turn(result, started)
         return result
@@ -89,8 +105,9 @@ def log_turn(result: TurnResult, started: float) -> None:
     """Log metadata only, never conversation content."""
     duration_ms = round((time.perf_counter() - started) * 1000)
     logger.info(
-        "Chat turn finished: status=%s attempts=%d duration_ms=%d",
+        "Chat turn finished: status=%s attempts=%d error=%s duration_ms=%d",
         result.status,
         result.attempts,
+        result.error.code if result.error else "-",
         duration_ms,
     )

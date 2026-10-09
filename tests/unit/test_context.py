@@ -6,6 +6,7 @@ from app.harness.context import (
     TurnContext,
     build_request,
 )
+from app.schemas.ai import TurnReply
 
 
 def make_context(**overrides: Any) -> TurnContext:
@@ -61,3 +62,9 @@ def test_system_prompt_has_settings_but_not_user_text() -> None:
     assert "coffee shop" in request.system
     assert "reply_en" in request.system
     assert "Yesterday I go to work." not in request.system
+
+
+def test_request_asks_for_the_turn_reply_schema() -> None:
+    request = build_request(make_context(), max_tokens=800)
+
+    assert request.response_schema == TurnReply.model_json_schema()

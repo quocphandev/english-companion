@@ -3,29 +3,41 @@
 Tests replace these with app.dependency_overrides (test DB session, scripted AI).
 """
 
+from functools import lru_cache
 from typing import Annotated
 
-from fastapi import Depends, status
+from fastapi import Depends
 from sqlalchemy.orm import Session
 
-from app.config import get_settings
+from app.config import Settings, get_settings
 from app.db import get_session
-from app.errors import AppError
 from app.harness.chat_harness import ChatHarness
+from app.providers.ai_provider import AIProvider
 from app.providers.fake_provider import FakeProvider
+from app.providers.gemini_provider import GeminiProvider
 from app.services.conversation_service import ConversationService
 
 
-def get_harness() -> ChatHarness:
-    settings = get_settings()
-    if settings.ai_provider != "fake":
-        # The Claude provider arrives in milestone 2.
-        raise AppError(
-            "provider_not_supported",
-            "Nhà cung cấp AI này chưa được hỗ trợ.",
-            http_status=status.HTTP_503_SERVICE_UNAVAILABLE,
+def create_provider(settings: Settings) -> AIProvider:
+    """Pick the AI provider from AI_PROVIDER ("fake" by default, or "gemini")."""
+    if settings.ai_provider == "gemini":
+        return GeminiProvider(
+            api_key=settings.gemini_api_key.get_secret_value(),
+            model=settings.gemini_model,
+            timeout_seconds=settings.ai_timeout_seconds,
+            thinking_level=settings.gemini_thinking_level,
         )
-    return ChatHarness(FakeProvider(), settings.ai_max_output_tokens)
+    return FakeProvider()
+
+
+@lru_cache
+def get_provider() -> AIProvider:
+    """One provider (and so one HTTP client) for the whole app."""
+    return create_provider(get_settings())
+
+
+def get_harness() -> ChatHarness:
+    return ChatHarness(get_provider(), get_settings().ai_max_output_tokens)
 
 
 def get_conversation_service(

@@ -9,7 +9,7 @@ from app.harness.prompts import PROMPT_VERSION
 from app.models import Correction, Message, Profile
 from app.repositories.conversation_repository import ConversationRepository
 from app.schemas.conversation import MAX_MESSAGE_CHARS
-from tests.fakes import RecordingFakeProvider, ScriptedProvider
+from tests.fakes import FailingProvider, RecordingFakeProvider, ScriptedProvider
 from tests.integration.conftest import ProviderSetter
 
 BROKEN_JSON = "not json at all"
@@ -287,3 +287,37 @@ def test_retry_after_failure_reuses_the_same_message(
     assert retried["message"]["id"] == failed["message"]["id"]
     assert retried["reply"] is not None
     assert count_messages(db_session, "user") == 1
+
+
+@pytest.mark.parametrize(
+    ("error_code", "retryable"),
+    [
+        pytest.param("ai_quota_exhausted", False, id="daily quota"),
+        pytest.param("ai_timeout", True, id="timeout"),
+        pytest.param("ai_auth_failed", False, id="bad key"),
+    ],
+)
+def test_provider_error_returns_structured_error_and_keeps_text(
+    client: TestClient,
+    db_session: Session,
+    use_provider: ProviderSetter,
+    error_code: str,
+    retryable: bool,
+) -> None:
+    provider = FailingProvider(error_code)
+    use_provider(provider)
+    conversation_id = create_conversation(client)
+
+    response = send(client, conversation_id, "req-1", "Yesterday I go to work.")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "failed"
+    assert body["error"]["code"] == error_code
+    assert body["error"]["retryable"] is retryable
+    assert body["error"]["message_vi"]
+    assert provider.calls == 1
+    user_message = db_session.get(Message, body["message"]["id"])
+    assert user_message is not None
+    assert user_message.status == "failed"
+    assert user_message.original_text == "Yesterday I go to work."
