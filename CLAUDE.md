@@ -41,10 +41,11 @@ alembic upgrade head                     # áp dụng migration
 alembic revision --autogenerate -m "msg" # tạo migration mới, PHẢI đọc lại file trước khi áp dụng
 pytest                                   # chạy toàn bộ test
 pytest tests/unit -q                     # chạy nhanh phần unit
+node --test "tests/js/**/*.test.mjs"  # test JS thuần (Node 22, không npm, không thư viện)
 ruff check . && ruff format .            # lint và format
 ```
 
-Trước khi báo "xong" một việc: `ruff check .` và `pytest` phải đạt. Nếu không chạy được test thì nói rõ vì sao, không bỏ qua im lặng.
+Trước khi báo "xong" một việc: `ruff check .`, `pytest` và `node --test "tests/js/**/*.test.mjs"` phải đạt. Nếu không chạy được test thì nói rõ vì sao, không bỏ qua im lặng.
 
 ## Cấu trúc thư mục
 
@@ -120,7 +121,7 @@ Luồng phụ thuộc một chiều: router → service → harness/repository �
 ## Định nghĩa "xong" cho một việc
 
 1. Code chạy đúng trên máy (đã thử thật, không chỉ test).
-2. `ruff check .` và `pytest` đạt.
+2. `ruff check .`, `pytest` và `node --test "tests/js/**/*.test.mjs"` đạt.
 3. Nêu mã FR/AC liên quan và kết quả.
 4. `progress.md` được cập nhật: đã xong, kiểm thử, bước tiếp theo.
 5. Không còn TODO bí mật; việc dang dở ghi trong `progress.md`.
@@ -129,3 +130,5 @@ Luồng phụ thuộc một chiều: router → service → harness/repository �
 ## Ngoài phạm vi hiện tại
 
 Micro, STT/TTS, lịch ôn cách quãng, nhiệm vụ nhập vai, đăng nhập, triển khai public. Chỉ làm khi `progress.md` ghi đã chuyển sang giai đoạn đó.
+
+Ngoại lệ đã duyệt: "Đọc hội thoại" bằng `speechSynthesis` của trình duyệt (một phần FR09) được làm sớm, chỉ phía trình duyệt. STT, micro và TTS phía server vẫn ngoài phạm vi.

@@ -47,6 +47,7 @@ function errorMessage(data) {
 
 function renderUserMessage(text, note) {
   const box = createElement("div", "message message-user");
+  box.dataset.role = "user";
   box.append(createElement("p", "message-text", text));
   if (note) box.append(createElement("p", "message-note", note));
   return box;
@@ -79,6 +80,7 @@ function renderTurn(turn) {
   if (turn.corrections.length > 0) article.append(renderCorrections(turn.corrections));
   if (turn.reply) {
     const reply = createElement("div", "message message-assistant");
+    reply.dataset.role = "assistant";
     reply.append(createElement("p", "message-text", turn.reply.text));
     article.append(reply);
   }
@@ -135,6 +137,8 @@ function setupComposer() {
       lastAttempt && lastAttempt.text === text ? lastAttempt.requestId : crypto.randomUUID();
     lastAttempt = { requestId, text };
 
+    // Let other scripts (the conversation reader) react before anything changes.
+    document.dispatchEvent(new CustomEvent("chat:sending"));
     // Everything up to the fetch runs synchronously, so the busy state shows at once.
     setBusy(true);
     setStatus(MESSAGES.sending, false);
@@ -150,7 +154,9 @@ function setupComposer() {
         input_mode: "text",
       });
       if (ok && data?.status === "succeeded") {
-        pendingTurn.replaceWith(renderTurn(data));
+        const turnElement = renderTurn(data);
+        pendingTurn.replaceWith(turnElement);
+        document.dispatchEvent(new CustomEvent("chat:turn-added", { detail: { turnElement } }));
         input.value = "";
         lastAttempt = null;
         setStatus("", false);
@@ -234,5 +240,48 @@ function setupNewConversation() {
   });
 }
 
+// --- Mobile drawer for the sidebar (CSS only shows the toggle on small screens) ---
+
+function setupMobileNav() {
+  const layout = document.querySelector(".layout");
+  const sidebar = document.getElementById("sidebar");
+  const backdrop = document.querySelector(".sidebar-backdrop");
+  const toggles = document.querySelectorAll(".js-open-nav");
+  if (!layout || !sidebar || !backdrop) return;
+  let lastToggle = null;
+
+  function setOpen(open) {
+    layout.classList.toggle("nav-open", open);
+    backdrop.hidden = !open;
+    for (const toggle of toggles) toggle.setAttribute("aria-expanded", String(open));
+  }
+
+  for (const toggle of toggles) {
+    toggle.addEventListener("click", () => {
+      lastToggle = toggle;
+      setOpen(true);
+      // Wait one frame: the drawer must be visible before it can take focus.
+      requestAnimationFrame(() => sidebar.querySelector("a, button")?.focus());
+    });
+  }
+  for (const closer of document.querySelectorAll(".js-close-nav")) {
+    closer.addEventListener("click", () => {
+      setOpen(false);
+      lastToggle?.focus();
+    });
+  }
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && layout.classList.contains("nav-open")) {
+      setOpen(false);
+      lastToggle?.focus();
+    }
+  });
+  // Opening the "new conversation" dialog from the drawer: close the drawer first.
+  for (const opener of sidebar.querySelectorAll(".js-open-new-conversation")) {
+    opener.addEventListener("click", () => setOpen(false));
+  }
+}
+
 setupComposer();
 setupNewConversation();
+setupMobileNav();

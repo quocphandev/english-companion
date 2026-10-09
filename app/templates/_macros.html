@@ -7,7 +7,7 @@
   "naturalness": "Tự nhiên hơn",
 } %}
 <article class="turn">
-  <div class="message message-user{% if turn.message.status == 'failed' %} is-failed{% endif %}">
+  <div class="message message-user{% if turn.message.status == 'failed' %} is-failed{% endif %}" data-role="user">
     <p class="message-text">{{ turn.message.text }}</p>
     {% if turn.message.status == "failed" %}
     <p class="message-note">Chưa có phản hồi cho câu này.</p>
@@ -30,7 +30,7 @@
   </details>
   {% endif %}
   {% if turn.reply %}
-  <div class="message message-assistant">
+  <div class="message message-assistant" data-role="assistant">
     <p class="message-text">{{ turn.reply.text }}</p>
   </div>
   {% endif %}

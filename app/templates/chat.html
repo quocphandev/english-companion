@@ -3,10 +3,18 @@
 
 {% block title %}{% if conversation %}{{ conversation.topic }} · {% endif %}English Companion{% endblock %}
 
+{% macro nav_toggle() %}
+<button type="button" class="icon-button nav-toggle js-open-nav" aria-controls="sidebar"
+        aria-expanded="false" aria-label="Mở danh sách hội thoại">☰</button>
+{% endmacro %}
+
 {% block body %}
 <div class="layout">
-  <aside class="sidebar">
-    <p class="brand">English Companion</p>
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-top">
+      <p class="brand">English Companion</p>
+      <button type="button" class="icon-button nav-close js-close-nav" aria-label="Đóng danh sách hội thoại">✕</button>
+    </div>
     <nav aria-label="Điều hướng chính">
       <h2 class="nav-heading">Hội thoại</h2>
       <button type="button" class="button button-secondary js-open-new-conversation">+ Cuộc trò chuyện mới</button>
@@ -29,12 +37,18 @@
       </ul>
     </nav>
   </aside>
+  <div class="sidebar-backdrop js-close-nav" hidden></div>
 
   <main class="main">
     {% if conversation %}
     <header class="chat-header">
-      <h1>{{ conversation.topic }}</h1>
+      {{ nav_toggle() }}
+      <h1 class="chat-title">{{ conversation.topic }}</h1>
     </header>
+    <div id="reader-bar" class="reader-bar" role="toolbar" aria-label="Đọc hội thoại" hidden>
+      <button type="button" id="reader-play" class="button button-small">▶ Đọc hội thoại</button>
+      <p id="reader-status" class="reader-status" aria-live="polite"></p>
+    </div>
     <section id="message-list" class="message-list" aria-label="Tin nhắn" aria-live="polite">
       {% for turn in conversation.turns %}
       {{ render_turn(turn) }}
@@ -50,6 +64,10 @@
       <p id="composer-status" class="composer-status" role="status"></p>
     </form>
     {% else %}
+    <header class="chat-header chat-header-compact">
+      {{ nav_toggle() }}
+      <p class="chat-title">English Companion</p>
+    </header>
     <section class="welcome">
       <h1>Chào bạn!</h1>
       <p>Tạo một cuộc trò chuyện để bắt đầu luyện tiếng Anh.</p>
@@ -98,4 +116,5 @@
 
 {% block scripts %}
 <script src="{{ url_for('static', path='js/chat.js') }}" defer></script>
+<script type="module" src="{{ url_for('static', path='js/conversation-reader.js') }}"></script>
 {% endblock %}
