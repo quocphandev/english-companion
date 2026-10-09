@@ -5,7 +5,7 @@ Chatbot cá nhân giúp người Việt luyện giao tiếp tiếng Anh: chat, s
 
 ## Người dùng và cách làm việc với tôi
 
-- Chủ dự án là người mới với Python, có nền IT và công việc tester. Muốn vừa làm ra sản phẩm vừa học quy trình và lý do chọn công nghệ.
+- Chủ dự án là người mới với Python, có nền IT (Fullstack). Muốn vừa làm ra sản phẩm vừa học quy trình và lý do chọn công nghệ.
 - Trả lời bằng tiếng Việt. Tên biến, hàm, file, commit message và comment trong code dùng tiếng Anh.
 - Trước khi viết code: nêu ngắn gọn kế hoạch, các file sẽ tạo/sửa và lý do. Chờ xác nhận nếu thay đổi lớn hơn 3 file hoặc đụng vào schema DB.
 - Với khái niệm mới (async, dependency injection, migration, transaction...), giải thích 2-3 câu kèm ví dụ nhỏ ở lần đầu xuất hiện. Không giải thích lại thứ đã giải thích.
@@ -26,6 +26,8 @@ Việc đang làm và bước tiếp theo nằm trong `progress.md`; đọc file
 - pytest cho test, ruff cho lint và format.
 - Spec gốc nhắc SQLite; dự án đã chuyển sang Postgres. Khi spec và file này khác nhau, file này đúng.
 
+## Giải thích công nghê
+- Có một số công nghệ làm bao giờ, nên khi áp dụng bạn hãy giải thích qua một chút, nó làm gì trong dự án, áp dụng như thế nào.
 ## Lệnh thường dùng
 
 ```bash
