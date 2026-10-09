@@ -547,3 +547,26 @@ ins {
     min-height: 40px;
   }
 }
+
+.reader-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+}
+
+.reader-field select {
+  min-height: 36px;
+  padding: 4px 8px;
+  font: inherit;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface);
+}
+
+/* The message currently being read aloud. */
+.message.is-reading {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px rgb(37 99 235 / 0.15);
+}
