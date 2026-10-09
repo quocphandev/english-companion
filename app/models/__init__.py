@@ -2,7 +2,8 @@
 
 from app.models.base import Base
 from app.models.conversation import Conversation
+from app.models.correction import Correction
 from app.models.message import Message
 from app.models.profile import Profile
 
-__all__ = ["Base", "Conversation", "Message", "Profile"]
+__all__ = ["Base", "Conversation", "Correction", "Message", "Profile"]

@@ -8,6 +8,7 @@ from app.models.base import Base
 
 if TYPE_CHECKING:
     from app.models.conversation import Conversation
+    from app.models.correction import Correction
 
 
 class Message(Base):
@@ -32,8 +33,16 @@ class Message(Base):
     # Set on user turns so a resend with the same id cannot create a duplicate.
     # NULL for assistant replies; Postgres allows many NULLs in a unique column.
     request_id: Mapped[str | None] = mapped_column(String(64), unique=True)
+    # On assistant replies: the user message being answered (at most one reply each).
+    reply_to_message_id: Mapped[int | None] = mapped_column(
+        ForeignKey("messages.id", ondelete="CASCADE"), unique=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
 
     conversation: Mapped["Conversation"] = relationship(back_populates="messages")
+    # Corrections belong to the user message they comment on.
+    corrections: Mapped[list["Correction"]] = relationship(
+        back_populates="message", order_by="Correction.id", passive_deletes=True
+    )

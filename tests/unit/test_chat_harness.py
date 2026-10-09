@@ -1,21 +1,9 @@
 from app.harness.chat_harness import ChatHarness
 from app.harness.context import TurnContext
-from app.providers.ai_provider import AIProvider, ProviderRequest, ProviderResponse
 from app.providers.fake_provider import DEFAULT_FAKE_REPLY, FakeProvider
+from tests.fakes import ScriptedProvider
 
 VALID_JSON = '{"reply_en": "Great! What did you do next?", "corrections": []}'
-
-
-class ScriptedProvider(AIProvider):
-    """Returns the given outputs in order and records every request."""
-
-    def __init__(self, outputs: list[str]) -> None:
-        self._outputs = list(outputs)
-        self.requests: list[ProviderRequest] = []
-
-    def complete(self, request: ProviderRequest) -> ProviderResponse:
-        self.requests.append(request)
-        return ProviderResponse(text=self._outputs.pop(0))
 
 
 def make_context() -> TurnContext:
