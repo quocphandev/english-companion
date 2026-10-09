@@ -1,0 +1,38 @@
+{# Markup for one turn. static/js/chat.js builds the same structure for new turns. #}
+{% macro render_turn(turn) %}
+{% set category_labels = {
+  "grammar": "Ngữ pháp",
+  "word_choice": "Dùng từ",
+  "spelling": "Chính tả",
+  "naturalness": "Tự nhiên hơn",
+} %}
+<article class="turn">
+  <div class="message message-user{% if turn.message.status == 'failed' %} is-failed{% endif %}">
+    <p class="message-text">{{ turn.message.text }}</p>
+    {% if turn.message.status == "failed" %}
+    <p class="message-note">Chưa có phản hồi cho câu này.</p>
+    {% elif turn.message.status == "pending" %}
+    <p class="message-note">Đang xử lý…</p>
+    {% endif %}
+  </div>
+  {% if turn.corrections %}
+  <details class="correction-card" open>
+    <summary>Gợi ý sửa ({{ turn.corrections | length }})</summary>
+    <ul class="correction-list">
+      {% for item in turn.corrections %}
+      <li class="correction-item">
+        <span class="tag">{{ category_labels.get(item.category, item.category) }}</span>
+        <del>{{ item.original_span }}</del> → <ins>{{ item.corrected_text }}</ins>
+        <p class="correction-explanation">{{ item.explanation_vi }}</p>
+      </li>
+      {% endfor %}
+    </ul>
+  </details>
+  {% endif %}
+  {% if turn.reply %}
+  <div class="message message-assistant">
+    <p class="message-text">{{ turn.reply.text }}</p>
+  </div>
+  {% endif %}
+</article>
+{% endmacro %}

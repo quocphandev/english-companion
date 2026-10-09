@@ -8,6 +8,7 @@ Mỗi việc xong có một file. Đọc theo thứ tự số; mỗi file chỉ 
 | 02 | [02-database-alembic.md](02-database-alembic.md) | Model SQLAlchemy, engine/session, Alembic migration, test với DB thật | 1 |
 | 03 | [03-provider-harness.md](03-provider-harness.md) | Interface AIProvider, FakeProvider, schema Pydantic, harness sửa JSON | 1 |
 | 04 | [04-conversation-api.md](04-conversation-api.md) | API hội thoại: router/service/repository, 2 transaction, idempotency, lỗi có cấu trúc | 1 |
+| 05 | [05-chat-ui.md](05-chat-ui.md) | Trang chat: Jinja2 render phía server, `fetch`, chống XSS, CSP | 1 |
 
 ## Từ điển nhanh (khái niệm và file giải thích lần đầu)
 
@@ -34,3 +35,8 @@ Mỗi việc xong có một file. Đọc theo thứ tự số; mỗi file chỉ 
 | exception handler | Đổi mọi lỗi sang `{code, message_vi, retryable}` | 04 |
 | `PydanticCustomError` | Validator tự đặt mã lỗi | 04 |
 | `monkeypatch` (pytest) | Tạm thay hàm trong một test | 04 |
+| Jinja2: `{{ }}`, `extends`/`block`, `macro` | Render HTML phía server, tự escape | 05 |
+| `fetch`, `async`/`await` (JS) | Gửi HTTP không tải lại trang | 05 |
+| XSS, `textContent`, CSP | Ba lớp chống chèn script | 05 |
+| `selectinload`, vấn đề N+1 | Tải dữ liệu liên quan bằng 1 truy vấn | 05 |
+| `<dialog>` | Hộp thoại có sẵn của HTML | 05 |
