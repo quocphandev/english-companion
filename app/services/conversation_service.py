@@ -12,11 +12,14 @@ from app.harness.prompts import PROMPT_VERSION
 from app.models import Conversation, Message
 from app.repositories.conversation_repository import ConversationRepository
 from app.schemas.conversation import (
+    ConversationHistory,
+    ConversationSummary,
     CorrectionOut,
     CreateConversationRequest,
     MessageOut,
     SendMessageRequest,
     SendMessageResponse,
+    TurnView,
 )
 from app.schemas.error import ErrorBody
 
@@ -48,6 +51,22 @@ class ConversationService:
         conversation = self._repository.create_conversation(profile.id, request.topic)
         self._session.commit()
         return conversation.id
+
+    def list_conversations(self) -> list[ConversationSummary]:
+        return [
+            ConversationSummary(id=c.id, topic=c.topic, created_at=c.created_at)
+            for c in self._repository.list_conversations()
+        ]
+
+    def get_history(self, conversation_id: int) -> ConversationHistory | None:
+        """Conversation with its turns in order, or None if it does not exist."""
+        conversation = self._repository.get_conversation(conversation_id)
+        if conversation is None:
+            return None
+        messages = self._repository.list_messages(conversation_id)
+        return ConversationHistory(
+            id=conversation.id, topic=conversation.topic, turns=group_turns(messages)
+        )
 
     def send_message(
         self, conversation_id: int, request: SendMessageRequest
@@ -156,6 +175,22 @@ class ConversationService:
             ],
             error=error,
         )
+
+
+def group_turns(messages: list[Message]) -> list[TurnView]:
+    """Pair each user message with the assistant reply that answers it."""
+    replies = {
+        m.reply_to_message_id: m for m in messages if m.reply_to_message_id is not None
+    }
+    return [
+        TurnView(
+            message=to_message_out(m),
+            reply=to_message_out(replies[m.id]) if m.id in replies else None,
+            corrections=[CorrectionOut.model_validate(c) for c in m.corrections],
+        )
+        for m in messages
+        if m.role == "user"
+    ]
 
 
 def ensure_same_request(

@@ -23,10 +23,15 @@ Mốc 1: Khung dự án
   - Idempotency theo `request_id`: đã xong thì trả kết quả cũ (không gọi AI), `pending` thì trả pending, `failed` thì thử lại trên cùng câu; trùng đồng thời được UNIQUE chặn và xử lý; khác nội dung → 409.
   - Kiến trúc: `routers/` → `services/` → `repositories/` + `harness/`; `dependencies.py` (DI); `errors.py` (mọi lỗi dạng `{code, message_vi, retryable}`).
   - Migration `9ba16f575a07`: bảng `corrections` (có `prompt_version`), cột `messages.reply_to_message_id` (UNIQUE). Đã áp dụng lên DB dev.
-- Quy tắc mới: mỗi việc có file giải thích trong `docs/learning/` (01–04 đã có).
+- Trang chat (Jinja2 + JS thuần, phương án server render):
+  - `GET /` → hội thoại mới nhất (303) hoặc màn hình chào; `GET /conversations/{id}`; 404 tiếng Việt.
+  - Thanh bên "Hội thoại" + tạo hội thoại bằng `<dialog>`; Từ vựng/Ôn tập/Cài đặt hiện "sắp có".
+  - `chat.js`: "Đang xử lý…" đồng bộ, khóa nút, giữ câu khi lỗi, dùng lại `request_id` khi gửi lại câu lỗi, Enter gửi / Shift+Enter xuống dòng.
+  - Chống XSS: Jinja2 autoescape, JS chỉ `textContent`, header CSP `default-src 'self'` cho trang HTML.
+- Quy tắc: mỗi việc có file giải thích trong `docs/learning/` (01–05 đã có).
 
 ## Kiểm thử
-- `pytest`: 34 passed.
+- `pytest`: 43 passed.
   - `tests/unit/test_ai_schemas.py`: validator nhận JSON đúng, từ chối thiếu/rỗng `reply_en`, >3 corrections, category lạ, chuỗi không phải JSON.
   - `tests/unit/test_context.py`: giữ 20 tin, tin đầu là user, câu người dùng không nằm trong system prompt.
   - `tests/unit/test_chat_harness.py`: thành công 1 call; JSON hỏng → sửa thành công ở call 2; sai schema → sửa; hỏng 2 lần → `failed`, đúng 2 call.
@@ -37,12 +42,14 @@ Mốc 1: Khung dự án
 - `alembic downgrade base` rồi `upgrade head` trên DB test: chạy được.
 - `ruff check .` đạt.
 - Chạy thật `ChatHarness(FakeProvider())`: `succeeded`, 1 lần gọi, reply có cấu trúc đúng.
+  - `tests/integration/test_pages.py` (9 test): màn hình chào, chuyển hướng tới hội thoại mới nhất, thanh bên + lịch sử + thẻ sửa, lượt lỗi được đánh dấu, escape `<script>`/`<b>`, header CSP (không áp cho `/docs`), 404, file tĩnh.
+- Thử trên trình duyệt (Playwright): "Đang xử lý…" sau 6 ms; bấm 2 lần + Enter khi đang gửi → 1 request; lỗi `failed` và mất mạng → thông báo tiếng Việt, giữ câu, gửi lại dùng cùng `request_id`; câu rỗng không gửi; chủ đề/câu chứa `<img onerror>`/`<script>` không chạy; restart uvicorn → lịch sử còn; mở lại hội thoại cũ từ thanh bên.
 - Chạy thật uvicorn + DB dev: tạo hội thoại, gửi câu (succeeded, có correction), gửi lại cùng id (vẫn 1 câu user + 1 reply trong DB), câu rỗng → `empty_message`, id lạ → 404.
 - FR/AC: **AC01 đạt** (test AC01 ở trên). FR01 đạt phần gửi/nhận, giữ câu gốc, trạng thái, lịch sử theo hội thoại; còn thiếu câu hỏi mở đầu. AC08: JSON lỗi chỉ sửa một lần, AI lỗi không mất câu nhập (với fake provider); timeout/key sai thật làm ở Mốc 2.
 
 ## Bước tiếp theo
-1. API đọc lịch sử: `GET /api/conversations` và `GET /api/conversations/{id}/messages` (mở lại sau restart).
-2. Giao diện chat Jinja2 + JS nhỏ (gửi, trạng thái đang xử lý/thành công/lỗi, thử lại cùng `request_id`) để hoàn tất Mốc 1.
+1. Mốc 1 đã đạt tiêu chí "Chat giả lập; lịch sử còn sau restart". **Chờ chủ dự án xác nhận** để chuyển sang Mốc 2 (cập nhật dòng "Giai đoạn hiện tại" trong CLAUDE.md).
+2. Mốc 2: `ClaudeProvider` (timeout 30 s, max_tokens, hạn mức ngày), xử lý lỗi provider, hai chế độ sửa lỗi, trợ giúp khi bí (FR02, FR03).
 
 ## Ý tưởng sau (không làm bây giờ)
 - `.venv` đang là Python 3.13.13, còn CLAUDE.md/Dockerfile là 3.12: nên thống nhất một phiên bản.
@@ -57,3 +64,8 @@ Mốc 1: Khung dự án
 - Harness Mốc 2: bóc khối ```json khi Claude bọc ngoài; giới hạn context theo token; xử lý lỗi provider (timeout, key sai) thành lỗi `{code, message_vi, retryable}`; factory chọn provider theo `AI_PROVIDER`.
 - Lưu `PROMPT_VERSION` vào bảng `ai_runs` khi tạo bảng này (đã lưu ở `corrections`).
 - Console Windows mặc định cp1252 nên `print` chữ tiếng Việt bị lỗi: đặt `PYTHONIOENCODING=utf-8` khi chạy script thử.
+- Hiện giờ gửi theo múi giờ profile (trên Windows cần thêm thư viện `tzdata`, phải hỏi trước).
+- Thêm `favicon.ico` (hiện console báo 404, vô hại).
+- Test e2e tự động bằng trình duyệt trong `tests/e2e` (cần thêm thư viện Playwright cho Python, phải hỏi trước).
+- Thử lại một lượt `failed` ngay trong lịch sử sau khi tải lại trang (hiện chỉ thử lại được trước khi tải lại, vì `request_id` nằm trong bộ nhớ JS).
+- Điền sẵn trình độ/cách sửa của profile vào hộp thoại tạo hội thoại (hiện mặc định A2/learning).

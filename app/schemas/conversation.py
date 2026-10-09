@@ -62,6 +62,26 @@ class CorrectionOut(BaseModel):
     explanation_vi: str
 
 
+class ConversationSummary(BaseModel):
+    id: int
+    topic: str
+    created_at: datetime
+
+
+class TurnView(BaseModel):
+    """One user message with its reply and corrections, as shown in the chat."""
+
+    message: MessageOut
+    reply: MessageOut | None = None
+    corrections: list[CorrectionOut] = []
+
+
+class ConversationHistory(BaseModel):
+    id: int
+    topic: str
+    turns: list[TurnView]
+
+
 class SendMessageResponse(BaseModel):
     status: Literal["pending", "succeeded", "failed"]
     message: MessageOut

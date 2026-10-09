@@ -4,7 +4,7 @@ Methods only add/flush; committing (ending the transaction) is the service's job
 """
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.models import Conversation, Correction, Message, Profile
 from app.schemas.ai import TurnReply
@@ -31,6 +31,28 @@ class ConversationRepository:
 
     def get_conversation(self, conversation_id: int) -> Conversation | None:
         return self._session.get(Conversation, conversation_id)
+
+    def list_conversations(self) -> list[Conversation]:
+        """All conversations, newest first."""
+        return list(
+            self._session.scalars(
+                select(Conversation).order_by(
+                    Conversation.created_at.desc(), Conversation.id.desc()
+                )
+            )
+        )
+
+    def list_messages(self, conversation_id: int) -> list[Message]:
+        """All messages of a conversation, oldest first, with corrections loaded."""
+        return list(
+            self._session.scalars(
+                select(Message)
+                .where(Message.conversation_id == conversation_id)
+                # Load all corrections in one extra query instead of one per message.
+                .options(selectinload(Message.corrections))
+                .order_by(Message.created_at, Message.id)
+            )
+        )
 
     def find_message_by_request_id(self, request_id: str) -> Message | None:
         return self._session.scalar(

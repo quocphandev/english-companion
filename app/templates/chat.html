@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% from "_macros.html" import render_turn %}
+
+{% block title %}{% if conversation %}{{ conversation.topic }} · {% endif %}English Companion{% endblock %}
+
+{% block body %}
+<div class="layout">
+  <aside class="sidebar">
+    <p class="brand">English Companion</p>
+    <nav aria-label="Điều hướng chính">
+      <h2 class="nav-heading">Hội thoại</h2>
+      <button type="button" class="button button-secondary js-open-new-conversation">+ Cuộc trò chuyện mới</button>
+      <ul class="conversation-list">
+        {% for item in conversations %}
+        {% set is_active = conversation and item.id == conversation.id %}
+        <li>
+          <a href="/conversations/{{ item.id }}"
+             class="conversation-link{% if is_active %} is-active{% endif %}"
+             {% if is_active %}aria-current="page"{% endif %}>{{ item.topic }}</a>
+        </li>
+        {% else %}
+        <li class="muted">Chưa có cuộc trò chuyện nào.</li>
+        {% endfor %}
+      </ul>
+      <ul class="nav-upcoming" aria-label="Sắp có">
+        <li>Từ vựng <span class="badge">sắp có</span></li>
+        <li>Ôn tập <span class="badge">sắp có</span></li>
+        <li>Cài đặt <span class="badge">sắp có</span></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <main class="main">
+    {% if conversation %}
+    <header class="chat-header">
+      <h1>{{ conversation.topic }}</h1>
+    </header>
+    <section id="message-list" class="message-list" aria-label="Tin nhắn" aria-live="polite">
+      {% for turn in conversation.turns %}
+      {{ render_turn(turn) }}
+      {% else %}
+      <p id="empty-hint" class="empty-hint">Hãy gửi câu tiếng Anh đầu tiên của bạn.</p>
+      {% endfor %}
+    </section>
+    <form id="message-form" class="composer" data-conversation-id="{{ conversation.id }}" novalidate>
+      <label for="message-input" class="visually-hidden">Câu của bạn</label>
+      <textarea id="message-input" name="text" rows="2" maxlength="{{ max_message_chars }}"
+                placeholder="Nhập câu tiếng Anh… (Enter để gửi, Shift+Enter để xuống dòng)"></textarea>
+      <button type="submit" id="send-button" class="button">Gửi</button>
+      <p id="composer-status" class="composer-status" role="status"></p>
+    </form>
+    {% else %}
+    <section class="welcome">
+      <h1>Chào bạn!</h1>
+      <p>Tạo một cuộc trò chuyện để bắt đầu luyện tiếng Anh.</p>
+      <button type="button" class="button js-open-new-conversation">Bắt đầu cuộc trò chuyện</button>
+    </section>
+    {% endif %}
+  </main>
+</div>
+
+<dialog id="new-conversation-dialog" class="dialog" aria-labelledby="new-conversation-title">
+  <form id="new-conversation-form" class="dialog-form" novalidate>
+    <h2 id="new-conversation-title">Cuộc trò chuyện mới</h2>
+    <label class="field">
+      <span>Chủ đề</span>
+      <input name="topic" list="topic-suggestions" maxlength="100" required autocomplete="off">
+    </label>
+    <datalist id="topic-suggestions">
+      <option value="Đời sống"></option>
+      <option value="Quán cà phê"></option>
+      <option value="Công việc tester"></option>
+    </datalist>
+    <label class="field">
+      <span>Trình độ luyện tập</span>
+      <select name="level">
+        <option value="A1">A1</option>
+        <option value="A2" selected>A2</option>
+        <option value="B1">B1</option>
+        <option value="B2">B2</option>
+      </select>
+    </label>
+    <label class="field">
+      <span>Cách sửa lỗi</span>
+      <select name="correction_mode">
+        <option value="learning" selected>Học: hiện lỗi ngay</option>
+        <option value="conversation">Giao tiếp: xem lỗi sau</option>
+      </select>
+    </label>
+    <p id="new-conversation-error" class="form-error" role="alert"></p>
+    <div class="dialog-actions">
+      <button type="button" class="button button-secondary js-close-dialog">Hủy</button>
+      <button type="submit" class="button">Bắt đầu</button>
+    </div>
+  </form>
+</dialog>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', path='js/chat.js') }}" defer></script>
+{% endblock %}
