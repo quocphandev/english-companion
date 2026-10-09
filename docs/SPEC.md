@@ -116,7 +116,7 @@ Luồng: bấm micro → cấp quyền → bắt đầu thu → dừng → chuy�
 
 Nút Nghe xuất hiện ở câu trả lời, câu sửa và popup từ. Cho phép dừng và chọn tốc độ 0,75 hoặc 1,0. Không tự phát âm thanh. Khi giọng hoặc tính năng trình duyệt không có sẵn, hiển thị trạng thái thay vì làm hỏng hội thoại.
 
-Bản đầu có thể dùng speech synthesis của trình duyệt. Speech recognition trên trình duyệt có mức hỗ trợ khác nhau; tính năng thu và chuyển lời nói cần adapter có thể thay thế bằng dịch vụ STT phía Python. Chọn nhà cung cấp và kiểm tra phí trước khi tích hợp. Không giả định Claude Messages tự xử lý toàn bộ STT và TTS.
+Bản đầu có thể dùng speech synthesis của trình duyệt. Speech recognition trên trình duyệt có mức hỗ trợ khác nhau; tính năng thu và chuyển lời nói cần adapter có thể thay thế bằng dịch vụ STT phía Python. Chọn nhà cung cấp và kiểm tra phí trước khi tích hợp. Không giả định Gemini API (generate_content) tự xử lý toàn bộ STT và TTS.
 
 ## FR10 Tổng kết cuối buổi
 
@@ -145,7 +145,7 @@ FastAPI và Jinja2 phù hợp để tách API khỏi UI và làm tương tác ch
 | routers              | Nhận request, kiểm tra đầu vào và trả lỗi có cấu trúc.      |
 | conversation_service | Quản lý phiên, thứ tự lượt, chế độ học và trạng thái gửi.   |
 | harness              | Ghép context, gọi AI, kiểm tra schema và giới hạn vòng sửa. |
-| ai_provider          | Adapter Claude thật và fake provider cho demo hoặc test.    |
+| ai_provider          | Adapter Gemini thật và fake provider cho demo hoặc test.    |
 | vocabulary_service   | Tra nghĩa, cache, lưu từ và ôn tập.                         |
 | repositories         | Ghi đọc SQLite bằng truy vấn tham số và transaction.        |
 | speech_provider      | STT và TTS ở giai đoạn 2; không phụ thuộc nghiệp vụ chat.   |
@@ -153,6 +153,8 @@ FastAPI và Jinja2 phù hợp để tách API khỏi UI và làm tương tác ch
 ## Harness trong dự án này
 
 Harness là phần Python điều phối model. Mỗi lượt nạp cài đặt, nhiệm vụ, 20 tin nhắn gần nhất và bản tóm tắt trước đó; giới hạn context theo token của provider. Prompt tách yêu cầu hệ thống và lời người dùng. AI trả dữ liệu có cấu trúc gồm reply_en, corrections và suggested_words.
+
+**Quyết định đổi provider (09/10/2026):** AI gọi trong ứng dụng dùng Gemini API (gói `google-genai`, gói miễn phí, key Google AI Studio) thay cho Claude Messages API. Nhờ interface `AIProvider`, harness và nghiệp vụ không đổi. Gemini có structured output (JSON theo schema) nhưng harness vẫn validate bằng Pydantic và vẫn sửa JSON một lần. Claude Code vẫn là công cụ hỗ trợ viết code (mục 10), không liên quan đến quyết định này.
 
 Luồng: validate input → lưu lượt pending → build context → gọi provider → validate output → ghi reply và correction trong cùng transaction → trả UI. JSON sai được yêu cầu sửa một lần, tổng tối đa 2 call cho một tác vụ. Nếu vẫn sai, trả trạng thái failed; không hiển thị JSON thô.
 
@@ -232,7 +234,7 @@ Unit test cho validator, dedup, lịch ôn và context; integration test với f
 | **Mốc**             | **Công việc**                                       | **Kết quả có thể kiểm tra**                         |
 |---------------------|-----------------------------------------------------|-----------------------------------------------------|
 | 1 Khung dự án       | FastAPI, templates, SQLite, fake provider, cấu hình | Chat giả lập; lịch sử còn sau restart.              |
-| 2 Claude và sửa lỗi | Adapter, schema, harness, hai chế độ, trợ giúp      | Chat thật; nhận xét và gợi ý có cấu trúc.           |
+| 2 Gemini và sửa lỗi | Adapter, schema, harness, hai chế độ, trợ giúp      | Chat thật; nhận xét và gợi ý có cấu trúc.           |
 | 3 Từ vựng           | Token UI, chọn cụm, lookup ngữ cảnh, cache, lưu từ  | Bấm tra từ; phân biệt book theo câu.                |
 | 4 Hoàn thiện MVP    | Ôn thủ công, tổng kết, lỗi API, xóa dữ liệu, test   | Chạy trọn một buổi học và nghiệm thu AC01 đến AC08. |
 | 5 Giọng nói         | Micro, STT, transcript, phát giọng, thử lại         | Luồng nói và nghe; nghiệm thu AC09 và AC10.         |
@@ -264,7 +266,9 @@ Chọn dịch vụ STT và phương án TTS theo chất lượng, phí và dữ 
 
 FastAPI Templates: https://fastapi.tiangolo.com/advanced/templates/
 
-Claude Messages API: https://platform.claude.com/docs/en/api/http/messages
+Gemini API: https://ai.google.dev/gemini-api/docs
+
+Google Gen AI Python SDK (google-genai): https://googleapis.github.io/python-genai/
 
 MDN SpeechRecognition: https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition
 
