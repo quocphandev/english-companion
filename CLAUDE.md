@@ -70,7 +70,7 @@ Luồng phụ thuộc một chiều: router → service → harness/repository �
 ## Quy ước code
 
 - Type hint cho mọi hàm công khai. Hàm ngắn, một việc. Tên rõ nghĩa, không viết tắt khó đoán.
-- Dùng `pathlib`, f-string, `async def` cho endpoint gọi I/O. Không trộn code đồng bộ chặn luồng vào hàm async.
+- Dùng `pathlib`, f-string. DB dùng SQLAlchemy sync: endpoint gọi DB khai báo `def` (FastAPI chạy trong threadpool). Không gọi I/O chặn bên trong `async def`.
 - Cấu hình chỉ đọc qua `Settings`; không gọi `os.environ` rải rác.
 - Lỗi trả về dạng `{code, message_vi, retryable}`. Không lộ stack trace, key hay nội dung nhạy cảm cho client.
 - Không dùng `print` để debug trong code giữ lại; dùng `logging`. Log chỉ ghi metadata (id, thời lượng, trạng thái), không ghi câu chat hay âm thanh.

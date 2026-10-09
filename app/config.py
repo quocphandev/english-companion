@@ -12,8 +12,9 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    # Database (optional until the DB connection step is implemented)
-    database_url: str | None = None
+    # Database
+    database_url: str
+    # Only needed by integration tests; must point to a separate database.
     test_database_url: str | None = None
 
     # AI
