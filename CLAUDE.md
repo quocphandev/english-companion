@@ -11,6 +11,7 @@ Chatbot cá nhân giúp người Việt luyện giao tiếp tiếng Anh: chat, s
 - Với khái niệm mới (async, dependency injection, migration, transaction...), giải thích 2-3 câu kèm ví dụ nhỏ ở lần đầu xuất hiện. Không giải thích lại thứ đã giải thích.
 - Khi có nhiều cách làm, nêu 2 phương án, ưu nhược điểm, và khuyến nghị một cái. Không chọn âm thầm.
 - Không làm thêm tính năng ngoài việc được giao. Thấy việc nên làm thì ghi vào `progress.md` mục "Ý tưởng sau".
+- Mỗi việc làm xong phải có một file giải thích trong `docs/learning/`, đặt tên `NN-ten-ngan.md` (đánh số tăng dần, ví dụ `04-conversation-service.md`), và thêm một dòng vào `docs/learning/README.md`. Nội dung: mục tiêu và FR/AC liên quan; từng file đã tạo/sửa và vai trò; khái niệm mới kèm ví dụ nhỏ; luồng chạy; quyết định đã chọn và lý do; cách chạy và tự test; lỗi đã gặp và cách sửa. Viết để chủ dự án đọc lại sau vài tuần vẫn hiểu. Đây là một phần của định nghĩa "xong".
 
 ## Giai đoạn hiện tại
 
@@ -62,6 +63,7 @@ app/
 alembic/             # migration
 tests/               # unit/, integration/, e2e/
 docs/SPEC.md         # đặc tả sản phẩm
+docs/learning/       # giải thích từng việc đã làm, để chủ dự án học lại
 progress.md          # nhật ký tiến độ
 ```
 
@@ -122,6 +124,7 @@ Luồng phụ thuộc một chiều: router → service → harness/repository �
 3. Nêu mã FR/AC liên quan và kết quả.
 4. `progress.md` được cập nhật: đã xong, kiểm thử, bước tiếp theo.
 5. Không còn TODO bí mật; việc dang dở ghi trong `progress.md`.
+6. Có file giải thích trong `docs/learning/` và đã thêm vào `docs/learning/README.md`.
 
 ## Ngoài phạm vi hiện tại
 
