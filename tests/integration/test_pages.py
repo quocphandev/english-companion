@@ -102,3 +102,14 @@ def test_unknown_conversation_page_returns_404(client: TestClient) -> None:
 def test_static_files_are_served(client: TestClient) -> None:
     assert client.get("/static/js/chat.js").status_code == 200
     assert client.get("/static/css/chat.css").status_code == 200
+
+
+def test_mobile_nav_toggle_controls_the_sidebar(client: TestClient) -> None:
+    conversation_id = create_conversation(client)
+
+    html = client.get(f"/conversations/{conversation_id}").text
+
+    assert 'id="sidebar"' in html
+    assert 'aria-controls="sidebar"' in html
+    assert 'aria-expanded="false"' in html
+    assert "Mở danh sách hội thoại" in html
