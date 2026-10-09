@@ -113,3 +113,16 @@ def test_mobile_nav_toggle_controls_the_sidebar(client: TestClient) -> None:
     assert 'aria-controls="sidebar"' in html
     assert 'aria-expanded="false"' in html
     assert "Mở danh sách hội thoại" in html
+
+
+def test_reader_bar_is_rendered_hidden_with_its_controls(client: TestClient) -> None:
+    conversation_id = create_conversation(client)
+
+    html = client.get(f"/conversations/{conversation_id}").text
+
+    assert 'id="reader-bar"' in html
+    assert 'role="toolbar"' in html
+    assert 'id="reader-play"' in html
+    assert 'id="reader-stop"' in html
+    assert 'id="reader-filter"' in html
+    assert "data-conversation-id" in html

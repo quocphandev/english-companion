@@ -47,6 +47,14 @@
     </header>
     <div id="reader-bar" class="reader-bar" role="toolbar" aria-label="Đọc hội thoại" hidden>
       <button type="button" id="reader-play" class="button button-small">▶ Đọc hội thoại</button>
+      <button type="button" id="reader-stop" class="button button-small button-secondary" hidden>■ Dừng</button>
+      <label class="reader-field">
+        <span>Đọc</span>
+        <select id="reader-filter">
+          <option value="both" selected>Cả hai bên</option>
+          <option value="assistant">Chỉ chatbot</option>
+        </select>
+      </label>
       <p id="reader-status" class="reader-status" aria-live="polite"></p>
     </div>
     <section id="message-list" class="message-list" aria-label="Tin nhắn" aria-live="polite">
