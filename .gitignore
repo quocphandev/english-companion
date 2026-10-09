@@ -1,0 +1,30 @@
+# --- Bí mật: TUYỆT ĐỐI không commit ---
+.env
+.env.*
+!.env.example
+
+# --- Python ---
+*py[cod]
+.venv
+venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info
+build/
+dist/
+
+# --- Dữ liệu cục bộ ---
+*.sqlite3
+*.db
+tmp/
+audio_tmp/
+
+# --- Docker (dữ liệu PostgreSQL nằm trong named volume, không nằm trong repo) ---
+
+# --- IDE ---
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
