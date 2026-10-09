@@ -1,0 +1,12 @@
+# Tên thư viện, CHƯA ghim phiên bản (spec yêu cầu khóa phiên bản).
+# Sau khi cài thành công trong .venv, chạy:   pip freeze > requirements.lock.txt
+# rồi chuyển sang dùng file khóa này cho Docker. Hỏi Claude Code để làm cùng.
+fastapi
+uvicorn[standard]
+jinja2
+python-multipart
+pydantic-settings
+sqlalchemy
+alembic
+psycopg[binary]
+anthropic
