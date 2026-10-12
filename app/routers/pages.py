@@ -11,14 +11,17 @@ from fastapi import APIRouter, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
+from app.config import get_settings
 from app.dependencies import (
     ConversationServiceDep,
+    DataServiceDep,
     ReviewServiceDep,
     SummaryServiceDep,
     VocabularyServiceDep,
 )
 from app.schemas.conversation import MAX_MESSAGE_CHARS
 from app.schemas.help import MAX_INTENT_CHARS
+from app.services.data_service import DELETE_ALL_CONFIRMATION
 
 TEMPLATES_DIR = Path(__file__).resolve().parents[1] / "templates"
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
@@ -81,6 +84,7 @@ def conversation_page(
             "conversations": service.list_conversations(),
             "conversation": history,
             "summary": summaries.summary_of(conversation_id),
+            "ai_provider": get_settings().ai_provider,
             "max_message_chars": MAX_MESSAGE_CHARS,
             "max_intent_chars": MAX_INTENT_CHARS,
         },
@@ -125,5 +129,29 @@ def review_page(
             "conversation": None,
             "active_page": "review",
             "cards": reviews.deck(),
+        },
+    )
+
+
+@router.get("/settings")
+def settings_page(
+    request: Request, conversations: ConversationServiceDep, data: DataServiceDep
+) -> HTMLResponse:
+    """AI provider info, today's usage and "delete all learning data"."""
+    settings = get_settings()
+    return render(
+        request,
+        "settings.html",
+        {
+            "conversations": conversations.list_conversations(),
+            "conversation": None,
+            "active_page": "settings",
+            "ai_provider": settings.ai_provider,
+            "ai_model": settings.gemini_model
+            if settings.ai_provider == "gemini"
+            else "",
+            "calls_today": data.calls_today(),
+            "daily_limit": settings.daily_ai_limit,
+            "delete_confirmation": DELETE_ALL_CONFIRMATION,
         },
     )

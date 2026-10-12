@@ -51,6 +51,7 @@ class MessageOut(BaseModel):
     text: str
     status: Literal["pending", "succeeded", "failed"]
     created_at: datetime
+    needs_review: bool = False
 
 
 class CorrectionOut(BaseModel):

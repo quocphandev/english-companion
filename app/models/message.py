@@ -1,7 +1,16 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Index, String, Text, func
+from sqlalchemy import (
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    Index,
+    String,
+    Text,
+    func,
+    text,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
@@ -37,6 +46,8 @@ class Message(Base):
     reply_to_message_id: Mapped[int | None] = mapped_column(
         ForeignKey("messages.id", ondelete="CASCADE"), unique=True
     )
+    # The learner flagged this chatbot reply as needing review (AI can be wrong).
+    needs_review: Mapped[bool] = mapped_column(server_default=text("false"))
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

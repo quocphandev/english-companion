@@ -119,10 +119,18 @@ function renderTurn(turn, mode) {
     const reply = createElement("div", "message message-assistant");
     reply.dataset.role = "assistant";
     reply.dataset.messageId = String(turn.reply.id);
-    reply.append(createElement("p", "message-text", turn.reply.text));
+    reply.append(createElement("p", "message-text", turn.reply.text), renderFlagButton(false));
     article.append(reply);
   }
   return article;
+}
+
+function renderFlagButton(flagged) {
+  const button = createElement("button", "flag-button js-flag", flagged ? "⚑ Đã đánh dấu" : "⚑ Cần xem lại");
+  button.type = "button";
+  button.title = "Đánh dấu phản hồi này cần xem lại";
+  button.setAttribute("aria-pressed", String(flagged));
+  return button;
 }
 
 function renderPendingTurn(text) {
@@ -457,6 +465,55 @@ function setupFinish() {
   });
 }
 
+// --- "⚑ Cần xem lại": the learner flags a chatbot reply that may be wrong ---
+
+function setupReviewFlags() {
+  const list = document.getElementById("message-list");
+  if (!list) return;
+  list.addEventListener("click", async (event) => {
+    const button = event.target.closest(".js-flag");
+    if (!button) return;
+    const message = button.closest("[data-message-id]");
+    const flagged = button.getAttribute("aria-pressed") !== "true";
+    button.disabled = true;
+    try {
+      const { ok, data } = await postJson(`/api/messages/${message.dataset.messageId}/review-flag`, {
+        needs_review: flagged,
+      });
+      if (ok) {
+        button.setAttribute("aria-pressed", String(data.needs_review));
+        button.textContent = data.needs_review ? "⚑ Đã đánh dấu" : "⚑ Cần xem lại";
+      }
+    } catch {
+      // Leave the button as it was; the learner can try again.
+    } finally {
+      button.disabled = false;
+    }
+  });
+}
+
+// --- Delete this conversation (saved words are kept) ---
+
+function setupDeleteConversation() {
+  const button = document.getElementById("delete-conversation");
+  const dialog = document.getElementById("delete-conversation-dialog");
+  if (!button || !dialog) return;
+  button.addEventListener("click", () => dialog.showModal());
+  dialog.addEventListener("close", async () => {
+    if (dialog.returnValue !== "confirm") return;
+    try {
+      const response = await fetch(`/api/conversations/${button.dataset.conversationId}`, {
+        method: "DELETE",
+      });
+      if (response.ok) window.location.href = "/";
+    } catch {
+      // Stay on the page; nothing was deleted.
+    }
+  });
+}
+
 setupMobileNav();
 setupHelp();
 setupFinish();
+setupReviewFlags();
+setupDeleteConversation();

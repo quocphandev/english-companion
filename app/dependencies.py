@@ -16,6 +16,7 @@ from app.providers.ai_provider import AIProvider
 from app.providers.fake_provider import FakeProvider
 from app.providers.gemini_provider import GeminiProvider
 from app.services.conversation_service import ConversationService
+from app.services.data_service import DataService
 from app.services.help_service import HelpService
 from app.services.lookup_service import LookupService
 from app.services.review_service import ReviewService
@@ -111,3 +112,10 @@ def get_summary_service(
 
 
 SummaryServiceDep = Annotated[SummaryService, Depends(get_summary_service)]
+
+
+def get_data_service(session: Annotated[Session, Depends(get_session)]) -> DataService:
+    return DataService(session)
+
+
+DataServiceDep = Annotated[DataService, Depends(get_data_service)]
