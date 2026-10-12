@@ -58,10 +58,19 @@
       <p id="reader-status" class="reader-status" aria-live="polite"></p>
     </div>
     <section id="message-list" class="message-list" aria-label="Tin nhắn" aria-live="polite">
+      {% if conversation.opener %}
+      <article class="turn turn-opener">
+        <div class="message message-assistant" data-role="assistant">
+          <p class="message-text">{{ conversation.opener.text }}</p>
+        </div>
+      </article>
+      {% endif %}
       {% for turn in conversation.turns %}
       {{ render_turn(turn, conversation.correction_mode) }}
       {% else %}
+      {% if not conversation.opener %}
       <p id="empty-hint" class="empty-hint">Hãy gửi câu tiếng Anh đầu tiên của bạn.</p>
+      {% endif %}
       {% endfor %}
     </section>
     <section id="help-panel" class="help-panel" aria-labelledby="help-title" hidden>

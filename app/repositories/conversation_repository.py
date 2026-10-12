@@ -82,6 +82,18 @@ class ConversationRepository:
         self._session.flush()
         return message
 
+    def add_assistant_message(self, conversation_id: int, text: str) -> Message:
+        """A chatbot message that answers no user turn (e.g. the opening question)."""
+        message = Message(
+            conversation_id=conversation_id,
+            role="assistant",
+            original_text=text,
+            status="succeeded",
+        )
+        self._session.add(message)
+        self._session.flush()
+        return message
+
     def list_recent_turns(self, conversation_id: int, limit: int) -> list[Message]:
         """Latest succeeded messages of one conversation, oldest first."""
         newest_first = self._session.scalars(

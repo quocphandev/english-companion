@@ -1,6 +1,7 @@
 from typing import Any
 
 from app.harness.context import (
+    CONVERSATION_START,
     MAX_HISTORY_MESSAGES,
     ChatTurn,
     TurnContext,
@@ -38,7 +39,7 @@ def test_keeps_only_recent_history_and_appends_user_text() -> None:
     assert request.max_tokens == 800
 
 
-def test_conversation_starts_with_user_message() -> None:
+def test_opening_question_is_kept_after_a_neutral_start_turn() -> None:
     history = [
         ChatTurn(role="assistant", text="Hi! What did you do yesterday?"),
         ChatTurn(role="user", text="I worked."),
@@ -47,10 +48,12 @@ def test_conversation_starts_with_user_message() -> None:
 
     request = build_request(make_context(history=history), max_tokens=800)
 
-    assert [m.content for m in request.messages] == [
-        "I worked.",
-        "Nice.",
-        "Yesterday I go to work.",
+    assert [(m.role, m.content) for m in request.messages] == [
+        ("user", CONVERSATION_START),
+        ("assistant", "Hi! What did you do yesterday?"),
+        ("user", "I worked."),
+        ("assistant", "Nice."),
+        ("user", "Yesterday I go to work."),
     ]
 
 

@@ -9,6 +9,9 @@ from app.providers.ai_provider import ProviderMessage, ProviderRequest
 from app.schemas.ai import TurnReply
 
 MAX_HISTORY_MESSAGES = 20
+# Providers expect the first turn to be the user's. When the history starts with
+# the chatbot (its opening question), this neutral turn is put before it.
+CONVERSATION_START = "(Start of the conversation.)"
 
 
 class ChatTurn(BaseModel):
@@ -38,12 +41,11 @@ def build_system_prompt(context: TurnContext) -> str:
 
 
 def history_messages(history: list[ChatTurn]) -> list[ProviderMessage]:
-    """The most recent turns, trimmed so the conversation starts with a user turn."""
+    """The most recent turns, always starting with a user turn."""
     recent = history[-MAX_HISTORY_MESSAGES:]
     messages = [ProviderMessage(role=turn.role, content=turn.text) for turn in recent]
-    # The provider expects the conversation to start with a user message.
-    while messages and messages[0].role == "assistant":
-        messages.pop(0)
+    if messages and messages[0].role == "assistant":
+        messages.insert(0, ProviderMessage(role="user", content=CONVERSATION_START))
     return messages
 
 

@@ -12,6 +12,7 @@ Mỗi việc xong có một file. Đọc theo thứ tự số; mỗi file chỉ 
 | 07 | [07-gemini-provider.md](07-gemini-provider.md) | GeminiProvider, lỗi có cấu trúc, hạn mức ngày `ai_runs` | 2 |
 | 08 | [08-corrections-eval.md](08-corrections-eval.md) | Prompt v2, thẻ sửa hai chế độ, bộ 30 câu đánh giá | 2 |
 | 09 | [09-help-when-stuck.md](09-help-when-stuck.md) | "Giúp tôi" 3 mức + ý tiếng Việt, harness tổng quát | 2 |
+| 10 | [10-opening-question.md](10-opening-question.md) | Chatbot mở đầu bằng câu hỏi (FR01) | 2 |
 
 ## Từ điển nhanh (khái niệm và file giải thích lần đầu)
 

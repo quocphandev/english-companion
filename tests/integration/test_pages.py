@@ -139,3 +139,14 @@ def test_help_panel_is_rendered_hidden_with_insert_button(client: TestClient) ->
     assert "Chèn vào ô nhập" in html
     for level in ("1", "2", "3"):
         assert f'data-help-level="{level}"' in html
+
+
+def test_opening_question_is_shown_first_and_escaped(client: TestClient) -> None:
+    conversation_id = create_conversation(client, "<b>work</b>")
+
+    html = client.get(f"/conversations/{conversation_id}").text
+
+    assert 'class="turn turn-opener"' in html
+    assert "&lt;b&gt;work&lt;/b&gt;" in html
+    assert "<b>work</b>" not in html
+    assert 'id="empty-hint"' not in html
