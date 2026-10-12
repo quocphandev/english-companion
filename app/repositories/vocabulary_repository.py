@@ -1,10 +1,10 @@
 """Queries for saved vocabulary (FR06)."""
 
-from sqlalchemy import or_, select
+from sqlalchemy import exists, or_, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session, selectinload
 
-from app.models import Vocabulary, VocabularySource
+from app.models import ReviewEvent, Vocabulary, VocabularySource
 
 
 class VocabularyRepository:
@@ -51,8 +51,13 @@ class VocabularyRepository:
         )
         self._session.execute(statement)
 
-    def search(self, profile_id: int, query: str | None) -> list[Vocabulary]:
-        """Newest first; `query` matches the word, its base form, meaning or note."""
+    def search(
+        self, profile_id: int, query: str | None, review_status: str | None = None
+    ) -> list[Vocabulary]:
+        """Newest first; `query` matches the word, its base form, meaning or note.
+
+        `review_status` "reviewed" / "unreviewed" keeps words with / without any review.
+        """
         statement = (
             select(Vocabulary)
             .where(Vocabulary.profile_id == profile_id)
@@ -68,6 +73,11 @@ class VocabularyRepository:
                     Vocabulary.meaning_vi.icontains(query, autoescape=True),
                     Vocabulary.note.icontains(query, autoescape=True),
                 )
+            )
+        if review_status is not None:
+            reviewed = exists().where(ReviewEvent.vocabulary_id == Vocabulary.id)
+            statement = statement.where(
+                reviewed if review_status == "reviewed" else ~reviewed
             )
         return list(self._session.scalars(statement))
 

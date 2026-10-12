@@ -29,9 +29,12 @@
           <a href="/vocabulary" class="conversation-link{% if active_page == 'vocabulary' %} is-active{% endif %}"
              {% if active_page == 'vocabulary' %}aria-current="page"{% endif %}>Từ vựng</a>
         </li>
+        <li>
+          <a href="/review" class="conversation-link{% if active_page == 'review' %} is-active{% endif %}"
+             {% if active_page == 'review' %}aria-current="page"{% endif %}>Ôn tập</a>
+        </li>
       </ul>
       <ul class="nav-upcoming" aria-label="Sắp có">
-        <li>Ôn tập <span class="badge">sắp có</span></li>
         <li>Cài đặt <span class="badge">sắp có</span></li>
       </ul>
     </nav>

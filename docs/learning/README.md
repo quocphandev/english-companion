@@ -16,6 +16,7 @@ Mỗi việc xong có một file. Đọc theo thứ tự số; mỗi file chỉ 
 | 10 | [10-opening-question.md](10-opening-question.md) | Chatbot mở đầu bằng câu hỏi (FR01) | 2 |
 | 11 | [11-word-lookup.md](11-word-lookup.md) | Bấm từ, chọn cụm, tra nghĩa theo ngữ cảnh, cache (FR05) | 3 |
 | 12 | [12-vocabulary.md](12-vocabulary.md) | Lưu từ không trùng, trang Từ vựng (FR06) | 3 |
+| 13 | [13-flashcard-review.md](13-flashcard-review.md) | Flashcard Nhớ/Chưa nhớ, lọc chưa ôn/đã ôn (FR07 MVP) | 4 |
 
 ## Từ điển nhanh (khái niệm và file giải thích lần đầu)
 
@@ -62,3 +63,5 @@ Mỗi việc xong có một file. Đọc theo thứ tự số; mỗi file chỉ 
 | chuẩn hóa khóa, unique nhiều cột | Phát hiện trùng ở mức DB | 12 |
 | `<dialog method="dialog">` | Hộp xác nhận không cần `confirm()` | 12 |
 | kế thừa template nhiều tầng | Khung trang dùng chung | 12 |
+| window function `row_number() OVER` | Lấy dòng mới nhất của mỗi nhóm | 13 |
+| `CASE`, `EXISTS` | Sắp xếp theo nhóm, lọc theo bảng khác | 13 |

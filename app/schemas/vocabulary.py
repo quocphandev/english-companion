@@ -1,8 +1,11 @@
 """Request and response bodies for saved vocabulary (FR06)."""
 
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+ReviewStatus = Literal["reviewed", "unreviewed"]
 
 
 class SaveWordIn(BaseModel):

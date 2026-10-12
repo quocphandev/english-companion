@@ -11,7 +11,11 @@ from fastapi import APIRouter, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
-from app.dependencies import ConversationServiceDep, VocabularyServiceDep
+from app.dependencies import (
+    ConversationServiceDep,
+    ReviewServiceDep,
+    VocabularyServiceDep,
+)
 from app.schemas.conversation import MAX_MESSAGE_CHARS
 from app.schemas.help import MAX_INTENT_CHARS
 
@@ -84,9 +88,11 @@ def vocabulary_page(
     conversations: ConversationServiceDep,
     vocabulary: VocabularyServiceDep,
     q: str | None = None,
+    status: str | None = None,
 ) -> HTMLResponse:
-    """FR06: saved words, newest first, with search."""
+    """FR06: saved words, newest first, with search and a reviewed/unreviewed filter."""
     query = (q or "").strip()[:100]
+    review_status = status if status in ("reviewed", "unreviewed") else None
     return render(
         request,
         "vocabulary.html",
@@ -94,7 +100,25 @@ def vocabulary_page(
             "conversations": conversations.list_conversations(),
             "conversation": None,
             "active_page": "vocabulary",
-            "words": vocabulary.list_words(query or None),
+            "words": vocabulary.list_words(query or None, review_status),
             "query": query,
+            "review_status": review_status or "",
+        },
+    )
+
+
+@router.get("/review")
+def review_page(
+    request: Request, conversations: ConversationServiceDep, reviews: ReviewServiceDep
+) -> HTMLResponse:
+    """FR07 (MVP): manual flashcards."""
+    return render(
+        request,
+        "review.html",
+        {
+            "conversations": conversations.list_conversations(),
+            "conversation": None,
+            "active_page": "review",
+            "cards": reviews.deck(),
         },
     )

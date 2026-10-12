@@ -13,9 +13,16 @@
     <label for="vocab-q" class="visually-hidden">Tìm từ</label>
     <input id="vocab-q" name="q" type="search" value="{{ query }}" maxlength="100"
            placeholder="Tìm theo từ, nghĩa hoặc ghi chú">
+    <label for="vocab-status" class="visually-hidden">Lọc theo ôn tập</label>
+    <select id="vocab-status" name="status">
+      <option value="" {% if not review_status %}selected{% endif %}>Tất cả</option>
+      <option value="unreviewed" {% if review_status == "unreviewed" %}selected{% endif %}>Chưa ôn</option>
+      <option value="reviewed" {% if review_status == "reviewed" %}selected{% endif %}>Đã ôn</option>
+    </select>
     <button type="submit" class="button button-small">Tìm</button>
   </form>
   <p class="muted vocab-count">{{ words | length }} từ{% if query %} khớp “{{ query }}”{% endif %}</p>
+  {% if words %}<p><a class="button button-small" href="/review">Ôn tập các từ này</a></p>{% endif %}
   <ul class="vocab-list" id="vocab-list">
     {% for word in words %}
     <li class="vocab-item" data-word-id="{{ word.id }}">
@@ -46,7 +53,7 @@
     </li>
     {% else %}
     <li class="muted">
-      {% if query %}Không có từ nào khớp.{% else %}Chưa có từ nào. Bấm một từ trong câu trả lời của chatbot rồi chọn “Lưu từ”.{% endif %}
+      {% if query or review_status %}Không có từ nào khớp.{% else %}Chưa có từ nào. Bấm một từ trong câu trả lời của chatbot rồi chọn “Lưu từ”.{% endif %}
     </li>
     {% endfor %}
   </ul>

@@ -8,6 +8,7 @@ from app.models.help_request import HelpRequest
 from app.models.lookup_cache import LookupCache
 from app.models.message import Message
 from app.models.profile import Profile
+from app.models.review_event import ReviewEvent
 from app.models.vocabulary import Vocabulary, VocabularySource
 
 __all__ = [
@@ -19,6 +20,7 @@ __all__ = [
     "LookupCache",
     "Message",
     "Profile",
+    "ReviewEvent",
     "Vocabulary",
     "VocabularySource",
 ]
