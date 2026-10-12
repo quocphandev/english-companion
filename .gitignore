@@ -28,3 +28,5 @@ audio_tmp/
 .vscode/
 .DS_Store
 Thumbs.db
+# --- Eval output (AI answers for manual review) ---
+eval_results/

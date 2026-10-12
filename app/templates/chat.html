@@ -59,12 +59,13 @@
     </div>
     <section id="message-list" class="message-list" aria-label="Tin nhắn" aria-live="polite">
       {% for turn in conversation.turns %}
-      {{ render_turn(turn) }}
+      {{ render_turn(turn, conversation.correction_mode) }}
       {% else %}
       <p id="empty-hint" class="empty-hint">Hãy gửi câu tiếng Anh đầu tiên của bạn.</p>
       {% endfor %}
     </section>
-    <form id="message-form" class="composer" data-conversation-id="{{ conversation.id }}" novalidate>
+    <form id="message-form" class="composer" data-conversation-id="{{ conversation.id }}"
+          data-correction-mode="{{ conversation.correction_mode }}" novalidate>
       <label for="message-input" class="visually-hidden">Câu của bạn</label>
       <textarea id="message-input" name="text" rows="2" maxlength="{{ max_message_chars }}"
                 placeholder="Nhập câu tiếng Anh… (Enter để gửi, Shift+Enter để xuống dòng)"></textarea>

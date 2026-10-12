@@ -1,71 +1,86 @@
 # Progress
 
 ## Đang ở mốc
-Mốc 1: Khung dự án
+Mốc 2: Gemini và sửa lỗi (Mốc 1 đã xong).
 
 ## Đã xong
-- Khung FastAPI: `app/main.py` với `GET /health` → `{"status": "ok"}`.
-- `app/config.py`: `Settings` (pydantic-settings) đọc `.env`, `get_settings()` có cache. `DATABASE_URL` bắt buộc.
-- `pyproject.toml`: cấu hình pytest (`pythonpath`, `testpaths`) và ruff isort (`alembic` là thư viện ngoài).
-- Tầng dữ liệu (SQLAlchemy sync):
-  - `app/db.py`: engine (timezone UTC, `connect_timeout=10`), `SessionLocal`, `get_session()`.
-  - `app/models/`: `Profile`, `Conversation`, `Message` với CHECK, FK `ON DELETE CASCADE`, `request_id` unique, `created_at` timestamptz.
-- Alembic: `alembic.ini` không chứa URL; `env.py` lấy URL từ Settings. Migration đầu tiên `33b5d3751464` đã áp dụng lên DB dev.
-- `docker-compose.yml`: Postgres chỉ mở ở `127.0.0.1:5432`. `.env.example` dùng host `127.0.0.1` (trên Windows, `localhost` thử IPv6 trước nên bị treo).
-- CLAUDE.md: quy ước endpoint gọi DB dùng `def` (DB sync).
-- AI (chưa gọi Claude thật):
-  - `app/schemas/ai.py`: `TurnReply` (`reply_en`, tối đa 3 `corrections`, tối đa 3 `suggested_words`).
-  - `app/providers/`: interface `AIProvider` (ABC, sync) và `FakeProvider` trả JSON cố định.
-  - `app/harness/`: `build_request` (system prompt tách khỏi messages, 20 tin gần nhất, tin đầu là user); `ChatHarness.run_turn` validate bằng Pydantic, JSON sai thì sửa 1 lần (tối đa 2 call), vẫn sai thì `failed`/`invalid_ai_output`, không trả JSON thô. Log chỉ ghi metadata.
-- API hội thoại (FR01) với fake provider:
-  - `POST /api/conversations` (topic, level, correction_mode → `conversation_id`); level/mode ghi đè vào profile mặc định (get-or-create).
-  - `POST /api/conversations/{id}/messages`: tx1 lưu câu user `pending` → harness (không giữ transaction) → tx2 lưu reply + corrections + đổi status. AI lỗi → `200` + `status: failed` + `error` retryable, câu user vẫn còn.
-  - Idempotency theo `request_id`: đã xong thì trả kết quả cũ (không gọi AI), `pending` thì trả pending, `failed` thì thử lại trên cùng câu; trùng đồng thời được UNIQUE chặn và xử lý; khác nội dung → 409.
-  - Kiến trúc: `routers/` → `services/` → `repositories/` + `harness/`; `dependencies.py` (DI); `errors.py` (mọi lỗi dạng `{code, message_vi, retryable}`).
-  - Migration `9ba16f575a07`: bảng `corrections` (có `prompt_version`), cột `messages.reply_to_message_id` (UNIQUE). Đã áp dụng lên DB dev.
-- Trang chat (Jinja2 + JS thuần, phương án server render):
-  - `GET /` → hội thoại mới nhất (303) hoặc màn hình chào; `GET /conversations/{id}`; 404 tiếng Việt.
-  - Thanh bên "Hội thoại" + tạo hội thoại bằng `<dialog>`; Từ vựng/Ôn tập/Cài đặt hiện "sắp có".
-  - `chat.js`: "Đang xử lý…" đồng bộ, khóa nút, giữ câu khi lỗi, dùng lại `request_id` khi gửi lại câu lỗi, Enter gửi / Shift+Enter xuống dòng.
-  - Chống XSS: Jinja2 autoescape, JS chỉ `textContent`, header CSP `default-src 'self'` cho trang HTML.
-- Quy tắc: mỗi việc có file giải thích trong `docs/learning/` (01–05 đã có).
+
+### Mốc 1: khung dự án (PR #1–#6)
+- FastAPI, `Settings` đọc `.env`, Postgres 17 (Docker, chỉ mở `127.0.0.1:5432`), SQLAlchemy sync, Alembic.
+- Bảng `profiles`, `conversations`, `messages`, `corrections` (có `prompt_version`), `messages.reply_to_message_id`.
+- API `POST /api/conversations` và `POST /api/conversations/{id}/messages`.
+  - Ghi trong 2 transaction ngắn quanh lời gọi AI.
+  - Idempotency theo `request_id`.
+  - Lỗi trả dạng `{code, message_vi, retryable}`.
+- Harness: context 20 tin, system prompt tách riêng, validate Pydantic, sửa JSON 1 lần (tối đa 2 call).
+- Trang chat Jinja2 + JS thuần: thanh bên, tạo hoặc mở hội thoại, trạng thái gửi, giữ câu khi lỗi, lịch sử còn sau restart.
+- Chống XSS 3 lớp: autoescape, JS chỉ dùng `textContent`, CSP.
+
+### Mốc 2 (đang làm)
+- **Gemini (PR #8):**
+  - `GeminiProvider` dùng gói `google-genai` 2.29, gọi `models.generate_content`.
+  - System instruction, structured output theo schema `TurnReply` (đã lọc các từ khóa Gemini không hỗ trợ), timeout 30 s, không retry, `thinking_level` lấy từ cấu hình.
+  - Lỗi được đổi thành 10 mã `ai_*`, không lộ key hay nội dung lỗi gốc.
+  - Chọn provider bằng `AI_PROVIDER` (`fake` mặc định, hoặc `gemini`).
+  - `tests/conftest.py` chặn mọi lần tạo client Gemini thật trong test.
+- **Hạn mức ngày (PR #10):**
+  - Bảng `ai_runs` (chỉ metadata, migration `2ee8aebf5926`), mỗi lượt chat ghi một dòng trong tx2.
+  - Chặn lượt mới và lượt thử lại khi đã dùng đủ `DAILY_AI_LIMIT` lần gọi trong ngày (tính theo giờ profile) → 429 `daily_limit_reached`.
+  - Provider `fake` không bị đếm.
+- **Đọc hội thoại (một phần FR09, ngoại lệ đã duyệt; PR #7, #9):**
+  - Đọc lần lượt cả hội thoại bằng `speechSynthesis`, tách câu, chọn giọng Anh/Việt theo từng câu.
+  - Tô nổi bật và tự cuộn tới tin đang đọc; chọn "Cả hai bên" hoặc "Chỉ chatbot"; nút Dừng.
+  - Tự dừng khi gửi tin hoặc rời trang.
+  - Giao diện responsive: menu ☰ trên điện thoại.
 
 ## Kiểm thử
-- `pytest`: 43 passed.
-  - `tests/unit/test_ai_schemas.py`: validator nhận JSON đúng, từ chối thiếu/rỗng `reply_en`, >3 corrections, category lạ, chuỗi không phải JSON.
-  - `tests/unit/test_context.py`: giữ 20 tin, tin đầu là user, câu người dùng không nằm trong system prompt.
-  - `tests/unit/test_chat_harness.py`: thành công 1 call; JSON hỏng → sửa thành công ở call 2; sai schema → sửa; hỏng 2 lần → `failed`, đúng 2 call.
-  - `tests/integration/test_health.py`
-  - `tests/integration/test_models.py`: tạo profile → conversation → message, đọc lại từ DB; default, UTC, quan hệ đúng.
-  - `tests/integration/test_conversations_api.py` (19 test): tạo hội thoại/profile; lỗi 422 đúng format; lưu reply + corrections + `prompt_version`; giữ nguyên văn câu; context chỉ của hội thoại hiện tại; AC01 (rỗng, khoảng trắng, 2.001 ký tự bị chặn; 2.000 được nhận; gửi trùng `request_id` → 1 lượt, 1 lần gọi AI; trùng đồng thời qua UNIQUE); 409; 404; AI lỗi → `failed`, câu còn trong DB; thử lại dùng lại cùng câu.
-- `tests/integration/conftest.py`: chạy `alembic upgrade head` trên `TEST_DATABASE_URL`; mỗi test rollback. Sau khi chạy, DB test còn 0 dòng.
-- `alembic downgrade base` rồi `upgrade head` trên DB test: chạy được.
-- `ruff check .` đạt.
-- Chạy thật `ChatHarness(FakeProvider())`: `succeeded`, 1 lần gọi, reply có cấu trúc đúng.
-  - `tests/integration/test_pages.py` (9 test): màn hình chào, chuyển hướng tới hội thoại mới nhất, thanh bên + lịch sử + thẻ sửa, lượt lỗi được đánh dấu, escape `<script>`/`<b>`, header CSP (không áp cho `/docs`), 404, file tĩnh.
-- Thử trên trình duyệt (Playwright): "Đang xử lý…" sau 6 ms; bấm 2 lần + Enter khi đang gửi → 1 request; lỗi `failed` và mất mạng → thông báo tiếng Việt, giữ câu, gửi lại dùng cùng `request_id`; câu rỗng không gửi; chủ đề/câu chứa `<img onerror>`/`<script>` không chạy; restart uvicorn → lịch sử còn; mở lại hội thoại cũ từ thanh bên.
-- Chạy thật uvicorn + DB dev: tạo hội thoại, gửi câu (succeeded, có correction), gửi lại cùng id (vẫn 1 câu user + 1 reply trong DB), câu rỗng → `empty_message`, id lạ → 404.
-- FR/AC: **AC01 đạt** (test AC01 ở trên). FR01 đạt phần gửi/nhận, giữ câu gốc, trạng thái, lịch sử theo hội thoại; còn thiếu câu hỏi mở đầu. AC08: JSON lỗi chỉ sửa một lần, AI lỗi không mất câu nhập (với fake provider); timeout/key sai thật làm ở Mốc 2.
+- `pytest`: 89 passed, 3 skipped (smoke test live). `node --test "tests/js/**/*.test.mjs"`: 28 passed. `ruff check .` đạt.
+- Smoke test Gemini thật (`RUN_LIVE_AI=1`, 3 lần gọi), đạt 3/3:
+  - JSON đúng schema.
+  - Sửa `go → went`.
+  - Câu đúng không bị gắn lỗi.
+  - Key sai trả `400 INVALID_ARGUMENT`, được đổi thành `ai_auth_failed`.
+- AC đã đạt:
+  - **AC01**: `tests/integration/test_conversations_api.py` (các test chặn câu rỗng hoặc quá dài, gửi trùng `request_id`, gửi đồng thời).
+  - **AC08**, phần đã làm: JSON lỗi chỉ sửa 1 lần (`test_chat_harness.py`); AI lỗi không mất câu nhập (`test_invalid_ai_output_marks_turn_failed_and_keeps_text`, `test_provider_error_returns_structured_error_and_keeps_text`).
+
+## FR02, sửa lỗi hai chế độ — xong (merge từ `feat/FR02-correction-modes`)
+- Cài đặt `level` / `correction_mode` lưu theo từng hội thoại (migration `7060bde73b46`, có chép dữ liệu cũ từ profile).
+- Prompt v2 `chat-turn-v2`: câu trộn Việt–Anh, span chép nguyên văn, giữ ý, không nhận xét phát âm, từ chối prompt injection.
+- Thẻ sửa: câu gốc, câu sửa, phần thay đổi; gợi ý tùy chọn tách riêng. Chế độ học mở sẵn; chế độ giao tiếp có nút "Xem lỗi".
+- Bộ 30 câu `tests/data/eval_sentences.json` và script `python -m scripts.run_eval` (cần `RUN_LIVE_AI=1`; ghi `ai_runs` với operation `eval`; dừng khi hết hạn mức hoặc gặp 429).
+- AC đã đạt (phần đường ống):
+  - **AC02**: `test_ac02_error_is_stored_and_shown_as_corrected_sentence`.
+  - **AC03**: `test_ac03_correct_sentence_has_no_card`, `test_ac03_style_tip_is_optional_and_separate`.
+  - **AC04**: `test_ac04_learning_mode_opens_the_card`, `test_ac04_conversation_mode_closes_the_card_behind_xem_loi`, `test_ac04_each_conversation_keeps_its_own_mode`.
+  - Phần "tổng kết vẫn truy cập được" của AC04 làm ở FR10.
+- **Chất lượng Gemini thật chưa được chấm:** chủ dự án tự chạy `python -m scripts.run_eval` rồi chấm file kết quả (bước này cần gọi API thật nên chưa chạy).
+- Sửa thêm một lỗi cũ: thuộc tính `hidden` bị CSS `.button` ghi đè (nút Dừng luôn hiện).
 
 ## Bước tiếp theo
-1. Mốc 1 đã đạt tiêu chí "Chat giả lập; lịch sử còn sau restart". **Chờ chủ dự án xác nhận** để chuyển sang Mốc 2 (cập nhật dòng "Giai đoạn hiện tại" trong CLAUDE.md).
-2. Mốc 2: `ClaudeProvider` (timeout 30 s, max_tokens, hạn mức ngày), xử lý lỗi provider, hai chế độ sửa lỗi, trợ giúp khi bí (FR02, FR03).
+1. FR03: trợ giúp khi bí (3 mức gợi ý và ý bằng tiếng Việt, AC07).
+2. Đọc hội thoại, bước 3: Tạm dừng/Tiếp tục, Trước/Sau, tốc độ 0,75/1,0.
+3. Đọc hội thoại, bước 4: thông báo khi thiếu giọng hoặc trình duyệt không hỗ trợ; ghi chú FR09 trong SPEC; tài liệu `06`.
+
+## Nợ tài liệu
+- `docs/learning/06-read-aloud.md`: làm cùng đọc hội thoại bước 4.
+
+## Chờ quyết định
+- **Deploy public cho người khác test.** `CLAUDE.md` cấm khi chưa có đăng nhập, HTTPS và rate limit. Ngoài ra app đang dùng key Gemini của chủ dự án. Cần một kế hoạch riêng trước khi làm.
 
 ## Ý tưởng sau (không làm bây giờ)
 - `.venv` đang là Python 3.13.13, còn CLAUDE.md/Dockerfile là 3.12: nên thống nhất một phiên bản.
 - Khóa phiên bản dependency (`requirements.lock.txt`) theo yêu cầu bàn giao MVP.
-- SPEC mục 8 nói "Foreign key bật trong SQLite" và repositories "ghi đọc SQLite": cập nhật spec sang Postgres.
-- Đã chọn ghi level/mode vào profile: hội thoại cũ sẽ dùng cài đặt mới nhất. Nếu sau này cần mỗi hội thoại giữ cài đặt riêng thì thêm cột vào `conversations`.
+- SPEC mục 7–8 còn nhắc SQLite: cập nhật sang Postgres.
 - FR01: chatbot mở đầu bằng một câu hỏi ngắn khi tạo hội thoại.
 - Lượt `pending` bị kẹt nếu server sập giữa lúc gọi AI: coi `pending` quá 65 giây là `failed` để thử lại được.
-- Lưu `suggested_words` (hiện chỉ có trong output AI, chưa lưu và chưa trả qua API).
+- Lưu `suggested_words` (hiện chỉ có trong output AI, chưa lưu, chưa trả qua API).
 - Đưa giới hạn 2.000 ký tự (`MAX_MESSAGE_CHARS`) vào `Settings`.
-- AC04: ẩn thẻ lỗi ngay ở chế độ giao tiếp (phần UI).
-- Harness Mốc 2: bóc khối ```json khi Claude bọc ngoài; giới hạn context theo token; xử lý lỗi provider (timeout, key sai) thành lỗi `{code, message_vi, retryable}`; factory chọn provider theo `AI_PROVIDER`.
-- Lưu `PROMPT_VERSION` vào bảng `ai_runs` khi tạo bảng này (đã lưu ở `corrections`).
+- Harness: giới hạn context theo token; lưu `token_usage` vào `ai_runs`.
+- Phân biệt 429 "theo ngày" và "theo phút" hiện dựa vào chữ `PerDay` trong `details` (phỏng đoán, tài liệu Google không nói rõ). Cần xác nhận khi gặp 429 thật.
 - Console Windows mặc định cp1252 nên `print` chữ tiếng Việt bị lỗi: đặt `PYTHONIOENCODING=utf-8` khi chạy script thử.
-- Hiện giờ gửi theo múi giờ profile (trên Windows cần thêm thư viện `tzdata`, phải hỏi trước).
-- Thêm `favicon.ico` (hiện console báo 404, vô hại).
-- Test e2e tự động bằng trình duyệt trong `tests/e2e` (cần thêm thư viện Playwright cho Python, phải hỏi trước).
-- Thử lại một lượt `failed` ngay trong lịch sử sau khi tải lại trang (hiện chỉ thử lại được trước khi tải lại, vì `request_id` nằm trong bộ nhớ JS).
-- Điền sẵn trình độ/cách sửa của profile vào hộp thoại tạo hội thoại (hiện mặc định A2/learning).
+- Hiện giờ gửi theo múi giờ profile (Postgres đổi được múi giờ; hoặc thêm `tzdata`, phải hỏi trước).
+- Thêm `favicon.ico` (console báo 404, vô hại).
+- Test e2e tự động bằng trình duyệt trong `tests/e2e` (cần thêm Playwright cho Python, phải hỏi trước).
+- Thử lại một lượt `failed` ngay trong lịch sử sau khi tải lại trang.
+- Điền sẵn trình độ/cách sửa của profile vào hộp thoại tạo hội thoại.

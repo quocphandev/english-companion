@@ -23,8 +23,15 @@ class ConversationRepository:
             self._session.flush()
         return profile
 
-    def create_conversation(self, profile_id: int, topic: str) -> Conversation:
-        conversation = Conversation(profile_id=profile_id, topic=topic)
+    def create_conversation(
+        self, profile_id: int, topic: str, level: str, correction_mode: str
+    ) -> Conversation:
+        conversation = Conversation(
+            profile_id=profile_id,
+            topic=topic,
+            level=level,
+            correction_mode=correction_mode,
+        )
         self._session.add(conversation)
         self._session.flush()
         return conversation

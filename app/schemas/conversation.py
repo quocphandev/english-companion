@@ -62,6 +62,24 @@ class CorrectionOut(BaseModel):
     explanation_vi: str
 
 
+class Segment(BaseModel):
+    """A piece of a sentence; `changed` marks the part a correction touches."""
+
+    text: str
+    changed: bool = False
+
+
+class CorrectionView(BaseModel):
+    """Everything the correction card shows for one learner message."""
+
+    original: list[Segment]
+    # The sentence with real errors fixed; None when no span could be located.
+    corrected: list[Segment] | None = None
+    errors: list[CorrectionOut]
+    # "naturalness" items: optional style tips, shown apart from real errors.
+    suggestions: list[CorrectionOut]
+
+
 class ConversationSummary(BaseModel):
     id: int
     topic: str
@@ -74,11 +92,14 @@ class TurnView(BaseModel):
     message: MessageOut
     reply: MessageOut | None = None
     corrections: list[CorrectionOut] = []
+    correction_view: CorrectionView | None = None
 
 
 class ConversationHistory(BaseModel):
     id: int
     topic: str
+    level: Literal["A1", "A2", "B1", "B2"]
+    correction_mode: Literal["learning", "conversation"]
     turns: list[TurnView]
 
 
@@ -87,4 +108,5 @@ class SendMessageResponse(BaseModel):
     message: MessageOut
     reply: MessageOut | None = None
     corrections: list[CorrectionOut] = []
+    correction_view: CorrectionView | None = None
     error: ErrorBody | None = None

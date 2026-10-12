@@ -53,12 +53,17 @@ function renderUserMessage(text, note) {
   return box;
 }
 
-function renderCorrections(corrections) {
-  const card = createElement("details", "correction-card");
-  card.open = true;
-  card.append(createElement("summary", "", `Gợi ý sửa (${corrections.length})`));
+function renderSegments(segments, tag) {
+  const container = createElement("dd");
+  for (const segment of segments) {
+    container.append(segment.changed ? createElement(tag, "", segment.text) : segment.text);
+  }
+  return container;
+}
+
+function renderItems(items) {
   const list = createElement("ul", "correction-list");
-  for (const item of corrections) {
+  for (const item of items) {
     const row = createElement("li", "correction-item");
     row.append(
       createElement("span", "tag", CATEGORY_LABELS[item.category] ?? item.category),
@@ -70,14 +75,46 @@ function renderCorrections(corrections) {
     );
     list.append(row);
   }
-  card.append(list);
+  return list;
+}
+
+// Learning mode: open right away. Conversation mode: closed, the summary is "Xem lỗi".
+function renderCorrectionCard(view, mode) {
+  const count = view.errors.length + view.suggestions.length;
+  const hasErrors = view.errors.length > 0;
+  const label =
+    mode === "learning"
+      ? hasErrors ? "Gợi ý sửa" : "Gợi ý diễn đạt (tùy chọn)"
+      : hasErrors ? "Xem lỗi" : "Xem gợi ý";
+  const card = createElement("details", `correction-card correction-card-${mode}`);
+  card.open = mode === "learning";
+  card.append(createElement("summary", "", `${label} (${count})`));
+  if (view.corrected) {
+    const sentences = createElement("dl", "correction-sentences");
+    sentences.append(
+      createElement("dt", "", "Câu gốc"),
+      renderSegments(view.original, "del"),
+      createElement("dt", "", "Câu sửa"),
+      renderSegments(view.corrected, "ins"),
+    );
+    card.append(sentences);
+  }
+  if (hasErrors) card.append(renderItems(view.errors));
+  if (view.suggestions.length > 0) {
+    const section = createElement("section", "correction-suggestions");
+    section.append(
+      createElement("h3", "correction-subheading", "Gợi ý diễn đạt tự nhiên hơn (tùy chọn)"),
+      renderItems(view.suggestions),
+    );
+    card.append(section);
+  }
   return card;
 }
 
-function renderTurn(turn) {
+function renderTurn(turn, mode) {
   const article = createElement("article", "turn");
   article.append(renderUserMessage(turn.message.text));
-  if (turn.corrections.length > 0) article.append(renderCorrections(turn.corrections));
+  if (turn.correction_view) article.append(renderCorrectionCard(turn.correction_view, mode));
   if (turn.reply) {
     const reply = createElement("div", "message message-assistant");
     reply.dataset.role = "assistant";
@@ -154,7 +191,7 @@ function setupComposer() {
         input_mode: "text",
       });
       if (ok && data?.status === "succeeded") {
-        const turnElement = renderTurn(data);
+        const turnElement = renderTurn(data, form.dataset.correctionMode);
         pendingTurn.replaceWith(turnElement);
         document.dispatchEvent(new CustomEvent("chat:turn-added", { detail: { turnElement } }));
         input.value = "";
