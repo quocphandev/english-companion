@@ -15,6 +15,7 @@ from app.repositories.lookup_repository import LookupRepository
 from app.repositories.vocabulary_repository import VocabularyRepository
 from app.schemas.ai import LookupReply
 from app.schemas.vocabulary import (
+    ReviewStatus,
     SaveWordIn,
     SaveWordResponse,
     SourceOut,
@@ -114,9 +115,12 @@ class VocabularyService:
         self._session.refresh(word)
         return SaveWordResponse(created=created, word=to_word_out(word))
 
-    def list_words(self, query: str | None = None) -> list[WordOut]:
+    def list_words(
+        self, query: str | None = None, review_status: ReviewStatus | None = None
+    ) -> list[WordOut]:
         profile = self._conversations.get_or_create_default_profile()
-        return [to_word_out(w) for w in self._words.search(profile.id, query)]
+        words = self._words.search(profile.id, query, review_status)
+        return [to_word_out(w) for w in words]
 
     def update(self, word_id: int, request: UpdateWordIn) -> WordOut:
         word = self._words.get(word_id)

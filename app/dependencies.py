@@ -18,6 +18,7 @@ from app.providers.gemini_provider import GeminiProvider
 from app.services.conversation_service import ConversationService
 from app.services.help_service import HelpService
 from app.services.lookup_service import LookupService
+from app.services.review_service import ReviewService
 from app.services.vocabulary_service import VocabularyService
 
 
@@ -89,3 +90,12 @@ def get_vocabulary_service(
 
 
 VocabularyServiceDep = Annotated[VocabularyService, Depends(get_vocabulary_service)]
+
+
+def get_review_service(
+    session: Annotated[Session, Depends(get_session)],
+) -> ReviewService:
+    return ReviewService(session)
+
+
+ReviewServiceDep = Annotated[ReviewService, Depends(get_review_service)]

@@ -3,14 +3,24 @@
 from fastapi import APIRouter, Response, status
 
 from app.dependencies import VocabularyServiceDep
-from app.schemas.vocabulary import SaveWordIn, SaveWordResponse, UpdateWordIn, WordOut
+from app.schemas.vocabulary import (
+    ReviewStatus,
+    SaveWordIn,
+    SaveWordResponse,
+    UpdateWordIn,
+    WordOut,
+)
 
 router = APIRouter(prefix="/api/vocabulary", tags=["vocabulary"])
 
 
 @router.get("")
-def list_words(service: VocabularyServiceDep, q: str | None = None) -> list[WordOut]:
-    return service.list_words(q)
+def list_words(
+    service: VocabularyServiceDep,
+    q: str | None = None,
+    status: ReviewStatus | None = None,
+) -> list[WordOut]:
+    return service.list_words(q, status)
 
 
 @router.post("")
