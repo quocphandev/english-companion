@@ -63,6 +63,23 @@ export class ReadingQueue {
     return this.current();
   }
 
+  /** Jump to the first sentence of the next readable message (null at the end). */
+  nextMessage() {
+    if (!this.current()) return null;
+    this.#messageIndex = this.#nextReadableIndex(this.#messageIndex + 1);
+    this.#chunkIndex = 0;
+    return this.current();
+  }
+
+  /** Jump to the previous readable message; at the first one, restart it. */
+  previousMessage() {
+    if (!this.current()) return null;
+    const previous = this.#previousReadableIndex(this.#messageIndex - 1);
+    if (previous !== -1) this.#messageIndex = previous;
+    this.#chunkIndex = 0;
+    return this.current();
+  }
+
   /** Stop reading; the next start() begins from the top again. */
   reset() {
     this.#messageIndex = -1;
@@ -81,6 +98,13 @@ export class ReadingQueue {
 
   #nextReadableIndex(from) {
     for (let index = from; index < this.#messages.length; index += 1) {
+      if (this.#isReadable(this.#messages[index])) return index;
+    }
+    return -1;
+  }
+
+  #previousReadableIndex(from) {
+    for (let index = from; index >= 0; index -= 1) {
       if (this.#isReadable(this.#messages[index])) return index;
     }
     return -1;

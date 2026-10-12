@@ -100,4 +100,33 @@ describe("ReadingQueue", () => {
   test("an unknown filter is rejected", () => {
     assert.throws(() => new ReadingQueue([], "everyone"), /Unknown read filter/);
   });
+
+  test("nextMessage skips the rest of the current message", () => {
+    const queue = new ReadingQueue([message("user", "A1.", "A2."), message("assistant", "B1.")]);
+    queue.start();
+
+    assert.equal(queue.nextMessage().chunk.text, "B1.");
+    assert.equal(queue.nextMessage(), null);
+  });
+
+  test("previousMessage goes back one readable message, or restarts the first", () => {
+    const queue = new ReadingQueue([
+      message("assistant", "A1."),
+      message("user", "U1."),
+      message("assistant", "B1.", "B2."),
+    ], "assistant");
+    queue.start();
+    queue.advance(); // B1.
+    queue.advance(); // B2.
+
+    assert.equal(queue.previousMessage().chunk.text, "A1.");
+    assert.equal(queue.previousMessage().chunk.text, "A1.");
+  });
+
+  test("jumping does nothing before reading starts", () => {
+    const queue = new ReadingQueue([message("user", "Hi.")]);
+
+    assert.equal(queue.nextMessage(), null);
+    assert.equal(queue.previousMessage(), null);
+  });
 });

@@ -726,3 +726,10 @@ ins {
   }
 }
 
+.reader-notice {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 0.85rem;
+  color: #92400e;
+}
+

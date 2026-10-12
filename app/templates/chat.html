@@ -46,7 +46,9 @@
       <h1 class="chat-title">{{ conversation.topic }}</h1>
     </header>
     <div id="reader-bar" class="reader-bar" role="toolbar" aria-label="Đọc hội thoại" hidden>
-      <button type="button" id="reader-play" class="button button-small">▶ Đọc hội thoại</button>
+      <button type="button" id="reader-play" class="button button-small" aria-pressed="false">▶ Đọc hội thoại</button>
+      <button type="button" id="reader-prev" class="button button-small button-secondary" aria-label="Tin trước" hidden>◀ Trước</button>
+      <button type="button" id="reader-next" class="button button-small button-secondary" aria-label="Tin sau" hidden>Sau ▶</button>
       <button type="button" id="reader-stop" class="button button-small button-secondary" hidden>■ Dừng</button>
       <label class="reader-field">
         <span>Đọc</span>
@@ -55,7 +57,15 @@
           <option value="assistant">Chỉ chatbot</option>
         </select>
       </label>
+      <label class="reader-field">
+        <span>Tốc độ</span>
+        <select id="reader-rate">
+          <option value="0.75">0,75</option>
+          <option value="1" selected>1,0</option>
+        </select>
+      </label>
       <p id="reader-status" class="reader-status" aria-live="polite"></p>
+      <p id="reader-notice" class="reader-notice" hidden></p>
     </div>
     <section id="message-list" class="message-list" aria-label="Tin nhắn" aria-live="polite">
       {% if conversation.opener %}
