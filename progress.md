@@ -100,14 +100,20 @@ Mốc 2: Gemini và sửa lỗi (Mốc 1 đã xong).
 - Trang: nút "Kết thúc buổi" có hộp xác nhận; buổi đã xong thì hiện bản tổng kết thay ô nhập; thanh bên gắn nhãn "đã xong".
 - **AC04 đạt đủ** (phần tổng kết): `test_ac04_conversation_mode_errors_are_in_the_summary`. Test khác trong `tests/integration/test_summary_api.py`, `tests/unit/test_summary.py`.
 
+## Mốc 4 — Xóa dữ liệu và minh bạch AI — xong (merge từ `feat/M4-data-controls`)
+- Xóa một hội thoại (nút 🗑 + hộp xác nhận): messages, corrections, help_requests và liên kết nguồn bị xóa theo CASCADE; từ đã lưu vẫn giữ.
+- Xóa toàn bộ dữ liệu học ở trang Cài đặt: phải gõ `XÓA TẤT CẢ`. Xóa hội thoại, từ vựng, kết quả ôn và cache tra nghĩa; giữ `ai_runs` để không lách được hạn mức ngày.
+- Nút ⚑ "Cần xem lại" trên câu trả lời của chatbot (cột `messages.needs_review`, migration `6b4805d7e736`); dòng nhắc "AI có thể sai" dưới ô nhập; trang Cài đặt hiện provider, model và số lượt hôm nay.
+- Test: `tests/integration/test_data_controls.py` (7 test). Đã thử trên trình duyệt: gắn/bỏ cờ còn sau khi tải lại, xóa hội thoại, sai cụm xác nhận bị chặn. Tài liệu `15`.
+
 ## Bước tiếp theo
+- Bàn giao MVP (`chore/M4-handover`): dữ liệu demo, README cài đặt Windows/macOS, `requirements.lock.txt`, bảng nghiệm thu AC01–AC08.
 
 ## Chờ quyết định
 - **Deploy public cho người khác test.** `CLAUDE.md` cấm khi chưa có đăng nhập, HTTPS và rate limit. Ngoài ra app đang dùng key Gemini của chủ dự án. Cần một kế hoạch riêng trước khi làm.
 
 ## Ý tưởng sau (không làm bây giờ)
 - `.venv` đang là Python 3.13.13, còn CLAUDE.md/Dockerfile là 3.12: nên thống nhất một phiên bản.
-- Khóa phiên bản dependency (`requirements.lock.txt`) theo yêu cầu bàn giao MVP.
 - SPEC mục 7–8 còn nhắc SQLite: cập nhật sang Postgres.
 - FR01: có thể chuyển câu mở đầu sang do AI sinh (hiện dùng mẫu).
 - Lượt `pending` bị kẹt nếu server sập giữa lúc gọi AI: coi `pending` quá 65 giây là `failed` để thử lại được.

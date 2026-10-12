@@ -18,6 +18,7 @@ Mỗi việc xong có một file. Đọc theo thứ tự số; mỗi file chỉ 
 | 12 | [12-vocabulary.md](12-vocabulary.md) | Lưu từ không trùng, trang Từ vựng (FR06) | 3 |
 | 13 | [13-flashcard-review.md](13-flashcard-review.md) | Flashcard Nhớ/Chưa nhớ, lọc chưa ôn/đã ôn (FR07 MVP) | 4 |
 | 14 | [14-session-summary.md](14-session-summary.md) | Kết thúc buổi, tổng kết không bịa (FR10) | 4 |
+| 15 | [15-data-controls.md](15-data-controls.md) | Xóa hội thoại / xóa toàn bộ, cờ ⚑, trang Cài đặt | 4 |
 
 ## Từ điển nhanh (khái niệm và file giải thích lần đầu)
 
@@ -67,3 +68,5 @@ Mỗi việc xong có một file. Đọc theo thứ tự số; mỗi file chỉ 
 | window function `row_number() OVER` | Lấy dòng mới nhất của mỗi nhóm | 13 |
 | `CASE`, `EXISTS` | Sắp xếp theo nhóm, lọc theo bảng khác | 13 |
 | JSONB cho dữ liệu bán cấu trúc | Lưu chi tiết chỉ để hiển thị | 14 |
+| `ON DELETE CASCADE`, `delete()` hàng loạt | DB tự xóa dữ liệu con; xóa nhiều dòng một lệnh | 15 |
+| cụm xác nhận gõ tay | Chặn hành động không hoàn tác được | 15 |
