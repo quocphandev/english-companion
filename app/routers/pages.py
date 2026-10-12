@@ -11,7 +11,7 @@ from fastapi import APIRouter, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
-from app.dependencies import ConversationServiceDep
+from app.dependencies import ConversationServiceDep, VocabularyServiceDep
 from app.schemas.conversation import MAX_MESSAGE_CHARS
 from app.schemas.help import MAX_INTENT_CHARS
 
@@ -74,5 +74,27 @@ def conversation_page(
             "conversation": history,
             "max_message_chars": MAX_MESSAGE_CHARS,
             "max_intent_chars": MAX_INTENT_CHARS,
+        },
+    )
+
+
+@router.get("/vocabulary")
+def vocabulary_page(
+    request: Request,
+    conversations: ConversationServiceDep,
+    vocabulary: VocabularyServiceDep,
+    q: str | None = None,
+) -> HTMLResponse:
+    """FR06: saved words, newest first, with search."""
+    query = (q or "").strip()[:100]
+    return render(
+        request,
+        "vocabulary.html",
+        {
+            "conversations": conversations.list_conversations(),
+            "conversation": None,
+            "active_page": "vocabulary",
+            "words": vocabulary.list_words(query or None),
+            "query": query,
         },
     )

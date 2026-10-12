@@ -125,7 +125,61 @@ function showResult(target, data) {
     sentence.append(el("summary", "", "Nghĩa cả câu"), el("p", "", data.sentence_meaning_vi));
     target.append(sentence);
   }
-  document.dispatchEvent(new CustomEvent("lookup:shown", { detail: { card: target, data } }));
+  target.append(saveForm(data));
+}
+
+// FR06: save the word; the meaning can be edited first. On failure the card keeps
+// its data so the learner can retry.
+function saveForm(data) {
+  const form = el("form", "lookup-save");
+  form.noValidate = true;
+  const inputId = `save-meaning-${data.message_id}-${data.start}`;
+  const label = el("label", "", "Nghĩa sẽ lưu (có thể sửa)");
+  label.htmlFor = inputId;
+  const input = el("input");
+  input.id = inputId;
+  input.value = data.meaning_vi;
+  input.maxLength = 300;
+  const button = el("button", "button button-small", "Lưu từ");
+  button.type = "submit";
+  const status = el("p", "lookup-save-status");
+  status.setAttribute("role", "status");
+  form.append(label, input, button, status);
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const meaning = input.value.trim();
+    if (!meaning) {
+      status.textContent = "Bạn chưa nhập nghĩa.";
+      status.classList.add("is-error");
+      return;
+    }
+    button.disabled = true;
+    status.classList.remove("is-error");
+    status.textContent = "Đang lưu…";
+    try {
+      const { ok, data: saved } = await postJson("/api/vocabulary", {
+        message_id: data.message_id,
+        start: data.start,
+        end: data.end,
+        meaning_vi: meaning,
+      });
+      if (ok) {
+        status.textContent = saved.created
+          ? "Đã lưu vào sổ từ."
+          : "Từ này với nghĩa đó đã có trong sổ từ.";
+      } else {
+        status.textContent = saved?.message_vi ?? "Không lưu được, hãy thử lại.";
+        status.classList.add("is-error");
+      }
+    } catch {
+      status.textContent = "Không kết nối được máy chủ, hãy thử lại.";
+      status.classList.add("is-error");
+    } finally {
+      button.disabled = false;
+    }
+  });
+  return form;
 }
 
 function showError(target, message) {
@@ -146,7 +200,7 @@ async function lookup(message, cpStart, cpEnd, label) {
     if (card !== target) return; // another lookup replaced this card
     if (ok && data?.status === "succeeded") {
       target.querySelector(".lookup-term").textContent = data.selected_text;
-      showResult(target, { ...data, message_id: messageId });
+      showResult(target, { ...data, message_id: messageId, start: cpStart, end: cpEnd });
     } else {
       showError(target, data?.error?.message_vi ?? data?.message_vi ?? "Không tra được lúc này.");
     }

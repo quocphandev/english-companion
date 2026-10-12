@@ -1,5 +1,10 @@
 {# Markup for one turn. static/js/chat.js builds the same structure for new turns. #}
 
+{% macro nav_toggle() %}
+<button type="button" class="icon-button nav-toggle js-open-nav" aria-controls="sidebar"
+        aria-expanded="false" aria-label="Mở danh sách hội thoại">☰</button>
+{% endmacro %}
+
 {% macro render_segments(segments, tag) -%}
 {#- No whitespace between pieces: it would show up inside the sentence. -#}
 {%- for segment in segments -%}

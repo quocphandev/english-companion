@@ -1,0 +1,69 @@
+{% extends "_app_layout.html" %}
+{% from "_macros.html" import nav_toggle %}
+
+{% block title %}Từ vựng · English Companion{% endblock %}
+
+{% block main %}
+<header class="chat-header">
+  {{ nav_toggle() }}
+  <h1 class="chat-title">Sổ từ vựng</h1>
+</header>
+<section class="page-body">
+  <form class="vocab-search" method="get" action="/vocabulary" role="search">
+    <label for="vocab-q" class="visually-hidden">Tìm từ</label>
+    <input id="vocab-q" name="q" type="search" value="{{ query }}" maxlength="100"
+           placeholder="Tìm theo từ, nghĩa hoặc ghi chú">
+    <button type="submit" class="button button-small">Tìm</button>
+  </form>
+  <p class="muted vocab-count">{{ words | length }} từ{% if query %} khớp “{{ query }}”{% endif %}</p>
+  <ul class="vocab-list" id="vocab-list">
+    {% for word in words %}
+    <li class="vocab-item" data-word-id="{{ word.id }}">
+      <div class="vocab-head">
+        <strong class="vocab-lemma" lang="en">{{ word.lemma }}</strong>
+        {% if word.selected_text | lower != word.lemma %}
+        <span class="muted" lang="en">({{ word.selected_text }})</span>
+        {% endif %}
+        <span class="tag">{{ word.pos }}</span>
+      </div>
+      <p class="vocab-meaning">{{ word.meaning_vi }}</p>
+      <p class="vocab-example" lang="en">{{ word.example_en }}</p>
+      {% if word.sources %}
+      <p class="vocab-source">Gặp trong: <q lang="en">{{ word.sources[-1].source_sentence }}</q>
+        {%- if word.sources | length > 1 %} (+{{ word.sources | length - 1 }} câu khác){% endif %}</p>
+      {% endif %}
+      <form class="vocab-note-form" novalidate>
+        <label class="field">
+          <span>Ghi chú</span>
+          <textarea name="note" rows="2" maxlength="1000">{{ word.note or "" }}</textarea>
+        </label>
+        <div class="vocab-actions">
+          <button type="submit" class="button button-small button-secondary">Lưu ghi chú</button>
+          <button type="button" class="button button-small button-danger js-delete-word">Xóa</button>
+          <span class="vocab-status" role="status"></span>
+        </div>
+      </form>
+    </li>
+    {% else %}
+    <li class="muted">
+      {% if query %}Không có từ nào khớp.{% else %}Chưa có từ nào. Bấm một từ trong câu trả lời của chatbot rồi chọn “Lưu từ”.{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+
+<dialog id="delete-word-dialog" class="dialog" aria-labelledby="delete-word-title">
+  <form method="dialog" class="dialog-form">
+    <h2 id="delete-word-title">Xóa từ này?</h2>
+    <p>Từ <strong id="delete-word-name" lang="en"></strong> sẽ bị xóa khỏi sổ từ. Không thể hoàn tác.</p>
+    <div class="dialog-actions">
+      <button value="cancel" class="button button-secondary">Hủy</button>
+      <button value="confirm" class="button button-danger">Xóa</button>
+    </div>
+  </form>
+</dialog>
+{% endblock %}
+
+{% block page_scripts %}
+<script type="module" src="{{ url_for('static', path='js/vocab/vocabulary-page.js') }}"></script>
+{% endblock %}
