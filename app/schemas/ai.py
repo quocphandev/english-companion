@@ -50,3 +50,25 @@ class HelpReply(BaseModel):
     hint_en: str = Field(min_length=1, max_length=400)
     words: list[HelpWord] = Field(default_factory=list, max_length=3)
     explanation_vi: str = Field(min_length=1)
+
+
+class LookupAlternative(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    meaning_vi: str = Field(min_length=1)
+    note_vi: str = Field(min_length=1)
+
+
+class LookupReply(BaseModel):
+    """Meaning of a selected word or phrase in its sentence (FR05)."""
+
+    model_config = ConfigDict(str_strip_whitespace=True, extra="ignore")
+
+    lemma: str = Field(min_length=1)
+    pos: str = Field(min_length=1)
+    meaning_vi: str = Field(min_length=1)
+    example_en: str = Field(min_length=1)
+    sentence_meaning_vi: str | None = None
+    # Filled only when the context allows several readings.
+    alternatives: list[LookupAlternative] = Field(default_factory=list, max_length=3)
+    uncertainty_vi: str | None = None
