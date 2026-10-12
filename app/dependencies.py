@@ -18,6 +18,7 @@ from app.providers.gemini_provider import GeminiProvider
 from app.services.conversation_service import ConversationService
 from app.services.help_service import HelpService
 from app.services.lookup_service import LookupService
+from app.services.vocabulary_service import VocabularyService
 
 
 def create_provider(settings: Settings) -> AIProvider:
@@ -79,3 +80,12 @@ def get_lookup_service(
 
 
 LookupServiceDep = Annotated[LookupService, Depends(get_lookup_service)]
+
+
+def get_vocabulary_service(
+    session: Annotated[Session, Depends(get_session)],
+) -> VocabularyService:
+    return VocabularyService(session)
+
+
+VocabularyServiceDep = Annotated[VocabularyService, Depends(get_vocabulary_service)]
