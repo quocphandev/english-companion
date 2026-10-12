@@ -19,6 +19,7 @@ Mỗi việc xong có một file. Đọc theo thứ tự số; mỗi file chỉ 
 | 13 | [13-flashcard-review.md](13-flashcard-review.md) | Flashcard Nhớ/Chưa nhớ, lọc chưa ôn/đã ôn (FR07 MVP) | 4 |
 | 14 | [14-session-summary.md](14-session-summary.md) | Kết thúc buổi, tổng kết không bịa (FR10) | 4 |
 | 15 | [15-data-controls.md](15-data-controls.md) | Xóa hội thoại / xóa toàn bộ, cờ ⚑, trang Cài đặt | 4 |
+| 16 | [16-mvp-handover.md](16-mvp-handover.md) | README, `requirements.lock.txt`, dữ liệu demo, bảng nghiệm thu | 4 |
 
 ## Từ điển nhanh (khái niệm và file giải thích lần đầu)
 
@@ -70,3 +71,5 @@ Mỗi việc xong có một file. Đọc theo thứ tự số; mỗi file chỉ 
 | JSONB cho dữ liệu bán cấu trúc | Lưu chi tiết chỉ để hiển thị | 14 |
 | `ON DELETE CASCADE`, `delete()` hàng loạt | DB tự xóa dữ liệu con; xóa nhiều dòng một lệnh | 15 |
 | cụm xác nhận gõ tay | Chặn hành động không hoàn tác được | 15 |
+| lock file, `pip freeze` | Ghim đúng phiên bản thư viện đã thử | 16 |
+| seed idempotent | Dữ liệu mẫu, chạy nhiều lần vẫn như một | 16 |

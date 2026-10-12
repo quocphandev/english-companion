@@ -1,7 +1,7 @@
 # Progress
 
 ## Đang ở mốc
-Mốc 2: Gemini và sửa lỗi (Mốc 1 đã xong).
+MVP (Mốc 1–4) đã xong. Mốc 5 (giọng nói: micro, STT) chưa bắt đầu: cần chọn nhà cung cấp STT và chấp nhận chi phí trước.
 
 ## Đã xong
 
@@ -106,14 +106,36 @@ Mốc 2: Gemini và sửa lỗi (Mốc 1 đã xong).
 - Nút ⚑ "Cần xem lại" trên câu trả lời của chatbot (cột `messages.needs_review`, migration `6b4805d7e736`); dòng nhắc "AI có thể sai" dưới ô nhập; trang Cài đặt hiện provider, model và số lượt hôm nay.
 - Test: `tests/integration/test_data_controls.py` (7 test). Đã thử trên trình duyệt: gắn/bỏ cờ còn sau khi tải lại, xóa hội thoại, sai cụm xác nhận bị chặn. Tài liệu `15`.
 
+## Bàn giao MVP — xong (merge từ `chore/M4-handover`)
+- `README.md`: cài đặt cho Windows và macOS, chọn AI, lệnh hằng ngày, lỗi hay gặp.
+- `requirements.lock.txt`: phiên bản đã thử (pip freeze, Python 3.13). Dockerfile vẫn dùng `requirements.txt`.
+- `python -m scripts.seed_demo`: thêm một hội thoại demo và 2 từ (`book`, `look after`); không gọi AI, không xóa gì, chạy lại thì bỏ qua. Test: `tests/integration/test_seed_demo.py`.
+
+## Bảng nghiệm thu AC01–AC08 (Mốc 4)
+"Đường ống" nghĩa là đã kiểm bằng test tự động với provider giả. "Chất lượng" là nội dung Gemini trả về thật, cần người chấm bằng `scripts.run_eval`.
+
+| AC | Trạng thái | Bằng chứng |
+|---|---|---|
+| AC01 | Đạt | `tests/integration/test_conversations_api.py` (câu rỗng/quá dài, trùng `request_id`, gửi đồng thời) |
+| AC02 | Đạt đường ống; chất lượng chờ chấm | `test_ac02_error_is_stored_and_shown_as_corrected_sentence`; eval câu sai |
+| AC03 | Đạt đường ống; chất lượng chờ chấm | `test_ac03_correct_sentence_has_no_card`, `test_ac03_style_tip_is_optional_and_separate`; eval câu đúng |
+| AC04 | Đạt | `test_ac04_learning_mode_opens_the_card`, `test_ac04_conversation_mode_closes_the_card_behind_xem_loi`, `test_ac04_conversation_mode_errors_are_in_the_summary` |
+| AC05 | Đạt đường ống; nghĩa thật chờ người kiểm | `test_ac05_book_as_noun_and_verb_are_separate_lookups`, `test_ac05_phrase_looks_after_is_looked_up_as_a_whole` |
+| AC06 | Đạt | `test_ac06_same_word_same_meaning_is_not_duplicated`, `test_ac06_same_word_with_another_meaning_is_a_separate_entry`; dữ liệu ở Postgres, còn sau restart (đã thử tay) |
+| AC07 | Đạt | `test_ac07_help_never_creates_a_message`; "Chèn vào ô nhập" chỉ chèn, sửa được trước khi gửi (đã thử trên trình duyệt) |
+| AC08 | Đạt | `test_invalid_json_is_repaired_with_one_extra_call`, `test_still_invalid_after_repair_fails_without_third_call`, `test_provider_error_returns_structured_error_and_keeps_text`; key sai → `ai_auth_failed` (smoke test live) |
+
+AC09, AC10 thuộc Mốc 5 (giọng nói), chưa làm.
+
 ## Bước tiếp theo
-- Bàn giao MVP (`chore/M4-handover`): dữ liệu demo, README cài đặt Windows/macOS, `requirements.lock.txt`, bảng nghiệm thu AC01–AC08.
+- Chủ dự án chạy `$env:RUN_LIVE_AI="1"; python -m scripts.run_eval` rồi chấm file trong `eval_results/` để chốt chất lượng AC02, AC03, AC05.
+- Quyết định có bắt đầu Mốc 5 hay không (chọn nhà cung cấp STT, chi phí).
 
 ## Chờ quyết định
 - **Deploy public cho người khác test.** `CLAUDE.md` cấm khi chưa có đăng nhập, HTTPS và rate limit. Ngoài ra app đang dùng key Gemini của chủ dự án. Cần một kế hoạch riêng trước khi làm.
 
 ## Ý tưởng sau (không làm bây giờ)
-- `.venv` đang là Python 3.13.13, còn CLAUDE.md/Dockerfile là 3.12: nên thống nhất một phiên bản.
+- `.venv` đang là Python 3.13.13, còn CLAUDE.md/Dockerfile là 3.12: nên thống nhất một phiên bản, rồi cho Dockerfile cài từ `requirements.lock.txt`.
 - SPEC mục 7–8 còn nhắc SQLite: cập nhật sang Postgres.
 - FR01: có thể chuyển câu mở đầu sang do AI sinh (hiện dùng mẫu).
 - Lượt `pending` bị kẹt nếu server sập giữa lúc gọi AI: coi `pending` quá 65 giây là `failed` để thử lại được.

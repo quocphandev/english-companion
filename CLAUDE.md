@@ -15,7 +15,7 @@ Chatbot cá nhân giúp người Việt luyện giao tiếp tiếng Anh: chat, s
 
 ## Giai đoạn hiện tại
 
-Mốc 2 (Gemini và sửa lỗi): GeminiProvider qua gói `google-genai`, schema + harness, hai chế độ sửa lỗi, trợ giúp khi bí. Mốc 1 đã xong.
+MVP (Mốc 1–4) đã xong và nghiệm thu AC01–AC08 (xem bảng trong `progress.md`). Mốc 5 (giọng nói) chưa bắt đầu.
 Cập nhật dòng này mỗi khi qua mốc mới (xem bảng mốc trong `docs/SPEC.md` mục 10).
 Việc đang làm và bước tiếp theo nằm trong `progress.md`; đọc file đó đầu mỗi phiên.
 
