@@ -11,6 +11,7 @@ Mỗi việc xong có một file. Đọc theo thứ tự số; mỗi file chỉ 
 | 05 | [05-chat-ui.md](05-chat-ui.md) | Trang chat: Jinja2 render phía server, `fetch`, chống XSS, CSP | 1 |
 | 07 | [07-gemini-provider.md](07-gemini-provider.md) | GeminiProvider, lỗi có cấu trúc, hạn mức ngày `ai_runs` | 2 |
 | 08 | [08-corrections-eval.md](08-corrections-eval.md) | Prompt v2, thẻ sửa hai chế độ, bộ 30 câu đánh giá | 2 |
+| 09 | [09-help-when-stuck.md](09-help-when-stuck.md) | "Giúp tôi" 3 mức + ý tiếng Việt, harness tổng quát | 2 |
 
 ## Từ điển nhanh (khái niệm và file giải thích lần đầu)
 
@@ -49,3 +50,4 @@ Mỗi việc xong có một file. Đọc theo thứ tự số; mỗi file chỉ 
 | bộ câu đánh giá cố định | Đo chất lượng AI thay cho so khớp | 08 |
 | data migration | Migration kèm chép/sửa dữ liệu cũ | 08 |
 | `<details>`/`<summary>` | Thu gọn/mở rộng không cần JS | 08 |
+| harness tổng quát `run_structured` | Một vòng lặp gọi–kiểm tra–sửa cho mọi schema | 09 |
