@@ -6,7 +6,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.harness.prompts import PROMPT_VERSION
-from app.models import Correction, Message, Profile
+from app.models import Conversation, Correction, Message, Profile
 from app.repositories.conversation_repository import ConversationRepository
 from app.schemas.conversation import MAX_MESSAGE_CHARS
 from tests.fakes import FailingProvider, RecordingFakeProvider, ScriptedProvider
@@ -321,3 +321,35 @@ def test_provider_error_returns_structured_error_and_keeps_text(
     assert user_message is not None
     assert user_message.status == "failed"
     assert user_message.original_text == "Yesterday I go to work."
+
+
+# --- FR02: settings belong to each conversation -------------------------------
+
+
+def test_settings_are_stored_on_the_conversation(
+    client: TestClient, db_session: Session
+) -> None:
+    conversation_id = create_conversation(
+        client, level="B2", correction_mode="conversation"
+    )
+
+    conversation = db_session.get(Conversation, conversation_id)
+    assert conversation is not None
+    assert (conversation.level, conversation.correction_mode) == ("B2", "conversation")
+
+
+def test_context_uses_the_conversation_own_settings(
+    client: TestClient, use_provider: ProviderSetter
+) -> None:
+    provider = RecordingFakeProvider()
+    use_provider(provider)
+    first_id = create_conversation(client, level="A1", correction_mode="learning")
+    # A newer conversation changes the profile defaults...
+    create_conversation(client, level="B2", correction_mode="conversation")
+
+    # ...but the first conversation keeps its own settings.
+    send(client, first_id, "req-1", "Hello.")
+
+    system = provider.requests[0].system
+    assert "Learner level: A1" in system
+    assert "Correction mode: learning" in system
