@@ -76,6 +76,11 @@ Mốc 2: Gemini và sửa lỗi (Mốc 1 đã xong).
 - Ghi chú FR09 trong `docs/SPEC.md`; tài liệu `06`.
 - Test: `tests/js/reading-queue.test.mjs` (nextMessage, previousMessage), `test_reader_bar_is_rendered_hidden_with_its_controls`, `test_static_files_are_revalidated_by_the_browser`. Các trạng thái đã kiểm tra trên trình duyệt (Playwright).
 
+## Mốc 3 — FR05, tra nghĩa theo ngữ cảnh — xong (merge từ `feat/FR05-lookup`)
+- `POST /api/lookup` (message_id + vị trí theo code point). Server tự lấy câu, đánh dấu `⟦…⟧`, cache theo câu + vùng chọn + ngôn ngữ + phiên bản prompt (bảng `lookup_cache`, migration `2ea2d64cf519`).
+- Giao diện: từ trong tin của chatbot bấm được; "Tra cụm" khi bôi đen chữ; chế độ "Chọn cụm" (chạm từ đầu rồi từ cuối, tối đa 8 từ); thẻ nghĩa hiện ngay dưới tin nhắn.
+- **AC05 đạt phần đường ống**: `test_ac05_book_as_noun_and_verb_are_separate_lookups`, `test_ac05_phrase_looks_after_is_looked_up_as_a_whole`; cache: `test_second_identical_lookup_comes_from_cache_without_ai`. Nghĩa thật do Gemini trả cần người kiểm tra.
+
 ## Bước tiếp theo
 
 ## Chờ quyết định

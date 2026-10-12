@@ -68,7 +68,7 @@
   </div>
   {% if turn.correction_view %}{{ render_correction_card(turn.correction_view, mode) }}{% endif %}
   {% if turn.reply %}
-  <div class="message message-assistant" data-role="assistant">
+  <div class="message message-assistant" data-role="assistant" data-message-id="{{ turn.reply.id }}">
     <p class="message-text">{{ turn.reply.text }}</p>
   </div>
   {% endif %}

@@ -3,7 +3,14 @@
 from pydantic import BaseModel
 
 from app.providers.ai_provider import AIProvider, ProviderRequest, ProviderResponse
-from app.schemas.ai import Correction, HelpReply, HelpWord, SuggestedWord, TurnReply
+from app.schemas.ai import (
+    Correction,
+    HelpReply,
+    HelpWord,
+    LookupReply,
+    SuggestedWord,
+    TurnReply,
+)
 
 DEFAULT_FAKE_REPLY = TurnReply(
     reply_en="That sounds nice! What did you do after that?",
@@ -29,10 +36,19 @@ DEFAULT_FAKE_HELP = HelpReply(
     explanation_vi="Bắt đầu bằng 'Yesterday I went to' rồi tự hoàn thành câu.",
 )
 
+DEFAULT_FAKE_LOOKUP = LookupReply(
+    lemma="book",
+    pos="verb",
+    meaning_vi="đặt (chỗ, phòng) trước",
+    example_en="I booked a table for two.",
+    sentence_meaning_vi="Bản dịch câu do provider giả trả về.",
+)
+
 # Canned answer for each output schema, keyed by the schema title.
 DEFAULT_FAKE_REPLIES: dict[str, BaseModel] = {
     "TurnReply": DEFAULT_FAKE_REPLY,
     "HelpReply": DEFAULT_FAKE_HELP,
+    "LookupReply": DEFAULT_FAKE_LOOKUP,
 }
 
 

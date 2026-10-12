@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.types import Scope
 
 from app.errors import register_error_handlers
-from app.routers import conversations, help, pages
+from app.routers import conversations, help, lookup, pages
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 
@@ -30,6 +30,7 @@ register_error_handlers(app)
 app.mount("/static", RevalidatedStaticFiles(directory=STATIC_DIR), name="static")
 app.include_router(conversations.router)
 app.include_router(help.router)
+app.include_router(lookup.router)
 app.include_router(pages.router)
 
 

@@ -733,3 +733,99 @@ ins {
   color: #92400e;
 }
 
+
+/* --- Word lookup (FR05) --- */
+
+.word {
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+.word:hover,
+.word:focus-visible {
+  background: #dbeafe;
+  text-decoration: underline dotted;
+}
+
+.word.is-phrase-start {
+  background: #bfdbfe;
+  outline: 2px solid var(--color-primary);
+}
+
+.phrase-mode {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.phrase-mode[aria-pressed="true"] {
+  background: #dbeafe;
+  border-color: var(--color-primary);
+}
+
+.lookup-selection {
+  position: fixed;
+  z-index: 30;
+}
+
+.lookup-card {
+  align-self: flex-start;
+  max-width: min(60ch, 90%);
+  padding: 10px 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.08);
+}
+
+.lookup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.lookup-term {
+  font-size: 1.05rem;
+}
+
+.lookup-status {
+  margin: 6px 0 0;
+  color: var(--color-muted);
+}
+
+.lookup-status.is-error {
+  color: var(--color-error);
+}
+
+.lookup-meta,
+.lookup-meaning,
+.lookup-example {
+  margin: 6px 0 0;
+}
+
+.lookup-meaning {
+  font-weight: 600;
+}
+
+.lookup-example {
+  font-style: italic;
+  color: var(--color-muted);
+}
+
+.lookup-doubt {
+  margin-top: 6px;
+  padding: 6px 10px;
+  font-size: 0.9rem;
+  background: #fffbeb;
+  border-radius: 6px;
+}
+
+.lookup-doubt p,
+.lookup-alternatives {
+  margin: 2px 0;
+}
+
+.lookup-sentence {
+  margin-top: 6px;
+  font-size: 0.9rem;
+}
