@@ -16,6 +16,7 @@ from app.providers.ai_provider import AIProvider
 from app.providers.fake_provider import FakeProvider
 from app.providers.gemini_provider import GeminiProvider
 from app.services.conversation_service import ConversationService
+from app.services.help_service import HelpService
 
 
 def create_provider(settings: Settings) -> AIProvider:
@@ -55,3 +56,14 @@ def get_conversation_service(
 ConversationServiceDep = Annotated[
     ConversationService, Depends(get_conversation_service)
 ]
+
+
+def get_help_service(
+    session: Annotated[Session, Depends(get_session)],
+    harness: Annotated[ChatHarness, Depends(get_harness)],
+    daily_ai_limit: Annotated[int, Depends(get_daily_ai_limit)],
+) -> HelpService:
+    return HelpService(session, harness, daily_ai_limit)
+
+
+HelpServiceDep = Annotated[HelpService, Depends(get_help_service)]

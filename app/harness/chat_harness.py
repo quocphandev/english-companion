@@ -1,16 +1,17 @@
-"""Run one chat turn: build context, call the provider, validate, repair once."""
+"""Run AI tasks: build the request, call the provider, validate, repair once."""
 
 import logging
 import time
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, ValidationError
 
 from app.harness.context import TurnContext, build_request
+from app.harness.help_context import HelpContext, build_help_request
 from app.harness.prompts import REPAIR_INSTRUCTION_TEMPLATE
 from app.providers.ai_provider import AIProvider, ProviderMessage, ProviderRequest
 from app.providers.errors import ProviderError
-from app.schemas.ai import TurnReply
+from app.schemas.ai import HelpReply, TurnReply
 from app.schemas.error import ErrorBody
 
 logger = logging.getLogger(__name__)
@@ -25,8 +26,18 @@ INVALID_AI_OUTPUT_ERROR = ErrorBody(
 )
 
 
+class TaskResult(BaseModel):
+    """Outcome of one AI task. Never carries the raw (possibly invalid) model text."""
+
+    status: Literal["succeeded", "failed"]
+    value: Any = None  # the validated Pydantic object when status is "succeeded"
+    attempts: int
+    error: ErrorBody | None = None
+    duration_ms: int = 0
+
+
 class TurnResult(BaseModel):
-    """Outcome of a turn. Never carries the raw (possibly invalid) model text."""
+    """Outcome of a chat turn."""
 
     status: Literal["succeeded", "failed"]
     reply: TurnReply | None = None
@@ -49,37 +60,60 @@ class ChatHarness:
         return self._provider.model_name
 
     def run_turn(self, context: TurnContext) -> TurnResult:
-        started = time.perf_counter()
-        request = build_request(context, self._max_output_tokens)
+        task = self.run_structured(
+            build_request(context, self._max_output_tokens), TurnReply
+        )
+        return TurnResult(
+            status=task.status,
+            reply=task.value,
+            attempts=task.attempts,
+            error=task.error,
+            duration_ms=task.duration_ms,
+        )
 
+    def run_help(self, context: HelpContext) -> TaskResult:
+        """FR03: value is a HelpReply when it succeeds."""
+        return self.run_structured(
+            build_help_request(context, self._max_output_tokens), HelpReply
+        )
+
+    def run_structured(
+        self, request: ProviderRequest, schema: type[BaseModel]
+    ) -> TaskResult:
+        """Call the provider and validate the answer against `schema`.
+
+        Invalid JSON gets one repair call (at most MAX_CALLS_PER_TURN calls).
+        Provider errors (timeout, rate limit, bad key...) are never retried.
+        """
+        started = time.perf_counter()
         for attempt in range(1, MAX_CALLS_PER_TURN + 1):
             try:
                 raw_text = self._provider.complete(request).text
             except ProviderError as error:
-                # Provider failures (timeout, rate limit, bad key...) are never retried here.
-                result = TurnResult(
+                result = TaskResult(
                     status="failed", attempts=attempt, error=error.to_error_body()
                 )
-                return finish_turn(result, started)
+                return finish_task(result, started, schema)
             try:
-                reply = TurnReply.model_validate_json(raw_text)
+                value = schema.model_validate_json(raw_text)
             except ValidationError as error:
                 logger.warning(
-                    "Invalid AI output: attempt=%d error_count=%d",
+                    "Invalid AI output: schema=%s attempt=%d error_count=%d",
+                    schema.__name__,
                     attempt,
                     error.error_count(),
                 )
                 request = add_repair_messages(request, raw_text, error)
                 continue
-            result = TurnResult(status="succeeded", reply=reply, attempts=attempt)
-            return finish_turn(result, started)
+            result = TaskResult(status="succeeded", value=value, attempts=attempt)
+            return finish_task(result, started, schema)
 
-        result = TurnResult(
+        result = TaskResult(
             status="failed",
             attempts=MAX_CALLS_PER_TURN,
             error=INVALID_AI_OUTPUT_ERROR,
         )
-        return finish_turn(result, started)
+        return finish_task(result, started, schema)
 
 
 def format_validation_errors(error: ValidationError) -> str:
@@ -107,11 +141,14 @@ def add_repair_messages(
     )
 
 
-def finish_turn(result: TurnResult, started: float) -> TurnResult:
+def finish_task(
+    result: TaskResult, started: float, schema: type[BaseModel]
+) -> TaskResult:
     """Record the duration and log metadata only, never conversation content."""
     result.duration_ms = duration_ms = round((time.perf_counter() - started) * 1000)
     logger.info(
-        "Chat turn finished: status=%s attempts=%d error=%s duration_ms=%d",
+        "AI task finished: schema=%s status=%s attempts=%d error=%s duration_ms=%d",
+        schema.__name__,
         result.status,
         result.attempts,
         result.error.code if result.error else "-",

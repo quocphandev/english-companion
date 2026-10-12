@@ -64,11 +64,37 @@
       <p id="empty-hint" class="empty-hint">Hãy gửi câu tiếng Anh đầu tiên của bạn.</p>
       {% endfor %}
     </section>
+    <section id="help-panel" class="help-panel" aria-labelledby="help-title" hidden>
+      <div class="help-header">
+        <h2 id="help-title" class="help-title">Giúp tôi nói tiếp</h2>
+        <button type="button" class="icon-button js-close-help" aria-label="Đóng trợ giúp">✕</button>
+      </div>
+      <div class="help-levels" role="group" aria-label="Mức trợ giúp">
+        <button type="button" class="button button-small button-secondary" data-help-level="1">1 · Gợi ý từ</button>
+        <button type="button" class="button button-small button-secondary" data-help-level="2">2 · Mở đầu câu</button>
+        <button type="button" class="button button-small button-secondary" data-help-level="3">3 · Câu mẫu</button>
+      </div>
+      <form id="help-intent-form" class="help-intent" novalidate>
+        <label for="help-intent">Hoặc nhập ý bạn muốn nói bằng tiếng Việt</label>
+        <textarea id="help-intent" rows="2" maxlength="{{ max_intent_chars }}"
+                  placeholder="Ví dụ: Tôi muốn nói là hôm nay tôi bị kẹt xe"></textarea>
+        <button type="submit" class="button button-small">Diễn đạt giúp tôi</button>
+      </form>
+      <p id="help-status" class="help-status" role="status"></p>
+      <div id="help-result" class="help-result" hidden>
+        <p id="help-hint" class="help-hint" lang="en"></p>
+        <ul id="help-words" class="help-words"></ul>
+        <p id="help-explanation" class="help-explanation"></p>
+        <button type="button" id="help-insert" class="button button-small">Chèn vào ô nhập</button>
+      </div>
+    </section>
     <form id="message-form" class="composer" data-conversation-id="{{ conversation.id }}"
           data-correction-mode="{{ conversation.correction_mode }}" novalidate>
       <label for="message-input" class="visually-hidden">Câu của bạn</label>
       <textarea id="message-input" name="text" rows="2" maxlength="{{ max_message_chars }}"
                 placeholder="Nhập câu tiếng Anh… (Enter để gửi, Shift+Enter để xuống dòng)"></textarea>
+      <button type="button" id="help-toggle" class="button button-secondary" aria-expanded="false"
+              aria-controls="help-panel">Giúp tôi</button>
       <button type="submit" id="send-button" class="button">Gửi</button>
       <p id="composer-status" class="composer-status" role="status"></p>
     </form>

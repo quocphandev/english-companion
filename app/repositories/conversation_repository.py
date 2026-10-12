@@ -6,7 +6,7 @@ Methods only add/flush; committing (ending the transaction) is the service's job
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
-from app.models import Conversation, Correction, Message, Profile
+from app.models import Conversation, Correction, HelpRequest, Message, Profile
 from app.schemas.ai import TurnReply
 
 
@@ -125,3 +125,25 @@ class ConversationRepository:
         user_message.status = "succeeded"
         self._session.flush()
         return assistant_message
+
+    def add_help_request(
+        self,
+        *,
+        conversation_id: int,
+        mode: str,
+        intent_vi: str | None,
+        hint_en: str | None,
+        explanation_vi: str | None,
+        status: str,
+    ) -> HelpRequest:
+        help_request = HelpRequest(
+            conversation_id=conversation_id,
+            mode=mode,
+            intent_vi=intent_vi,
+            hint_en=hint_en,
+            explanation_vi=explanation_vi,
+            status=status,
+        )
+        self._session.add(help_request)
+        self._session.flush()
+        return help_request
