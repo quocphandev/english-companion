@@ -4,7 +4,7 @@ from sqlalchemy import exists, or_, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session, selectinload
 
-from app.models import ReviewEvent, Vocabulary, VocabularySource
+from app.models import Message, ReviewEvent, Vocabulary, VocabularySource
 
 
 class VocabularyRepository:
@@ -84,3 +84,16 @@ class VocabularyRepository:
     def delete(self, word: Vocabulary) -> None:
         self._session.delete(word)
         self._session.flush()
+
+    def words_from_conversation(self, conversation_id: int) -> list[Vocabulary]:
+        """Saved words met in this conversation, in the order they were saved."""
+        return list(
+            self._session.scalars(
+                select(Vocabulary)
+                .join(VocabularySource, VocabularySource.vocabulary_id == Vocabulary.id)
+                .join(Message, Message.id == VocabularySource.message_id)
+                .where(Message.conversation_id == conversation_id)
+                .order_by(Vocabulary.created_at, Vocabulary.id)
+                .distinct()
+            )
+        )

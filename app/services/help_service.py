@@ -4,7 +4,7 @@ import logging
 
 from sqlalchemy.orm import Session
 
-from app.errors import conversation_not_found
+from app.errors import conversation_finished, conversation_not_found
 from app.harness.chat_harness import ChatHarness, TaskResult
 from app.harness.context import MAX_HISTORY_MESSAGES, ChatTurn
 from app.harness.help_context import HelpContext, help_mode_for
@@ -32,6 +32,8 @@ class HelpService:
         conversation = self._repository.get_conversation(request.conversation_id)
         if conversation is None:
             raise conversation_not_found()
+        if conversation.status == "finished":
+            raise conversation_finished()
         self._ai_usage.ensure_within_daily_limit(conversation.profile.timezone)
 
         mode = help_mode_for(request.level, request.intent_vi)

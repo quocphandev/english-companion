@@ -39,6 +39,14 @@ def request_id_conflict() -> AppError:
     )
 
 
+def conversation_finished() -> AppError:
+    return AppError(
+        "conversation_finished",
+        "Buổi học này đã kết thúc. Hãy bắt đầu một cuộc trò chuyện mới.",
+        http_status=status.HTTP_409_CONFLICT,
+    )
+
+
 def daily_limit_reached(limit: int) -> AppError:
     return AppError(
         "daily_limit_reached",

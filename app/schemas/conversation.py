@@ -84,6 +84,7 @@ class ConversationSummary(BaseModel):
     id: int
     topic: str
     created_at: datetime
+    status: Literal["active", "finished"] = "active"
 
 
 class TurnView(BaseModel):
@@ -100,6 +101,7 @@ class ConversationHistory(BaseModel):
     topic: str
     level: Literal["A1", "A2", "B1", "B2"]
     correction_mode: Literal["learning", "conversation"]
+    status: Literal["active", "finished"] = "active"
     # The chatbot's opening question (FR01), shown before the first turn.
     opener: MessageOut | None = None
     turns: list[TurnView]

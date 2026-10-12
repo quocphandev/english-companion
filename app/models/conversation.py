@@ -1,7 +1,8 @@
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import CheckConstraint, DateTime, ForeignKey, String, Text, func
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
@@ -30,10 +31,14 @@ class Conversation(Base):
     level: Mapped[str] = mapped_column(String(2), server_default="A2")
     correction_mode: Mapped[str] = mapped_column(String(20), server_default="learning")
     status: Mapped[str] = mapped_column(String(20), server_default="active")
+    # Short recap of what was said; also given to the AI as earlier context.
     summary: Mapped[str | None] = mapped_column(Text)
+    # FR10 end-of-session extras from the AI (next exercise, key words), if any.
+    summary_details: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     profile: Mapped["Profile"] = relationship(back_populates="conversations")
     messages: Mapped[list["Message"]] = relationship(

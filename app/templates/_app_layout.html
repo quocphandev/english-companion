@@ -17,7 +17,8 @@
         <li>
           <a href="/conversations/{{ item.id }}"
              class="conversation-link{% if is_active %} is-active{% endif %}"
-             {% if is_active %}aria-current="page"{% endif %}>{{ item.topic }}</a>
+             {% if is_active %}aria-current="page"{% endif %}>{{ item.topic }}
+            {%- if item.status == "finished" %} <span class="badge">đã xong</span>{% endif %}</a>
         </li>
         {% else %}
         <li class="muted">Chưa có cuộc trò chuyện nào.</li>

@@ -19,6 +19,7 @@ from app.services.conversation_service import ConversationService
 from app.services.help_service import HelpService
 from app.services.lookup_service import LookupService
 from app.services.review_service import ReviewService
+from app.services.summary_service import SummaryService
 from app.services.vocabulary_service import VocabularyService
 
 
@@ -99,3 +100,14 @@ def get_review_service(
 
 
 ReviewServiceDep = Annotated[ReviewService, Depends(get_review_service)]
+
+
+def get_summary_service(
+    session: Annotated[Session, Depends(get_session)],
+    harness: Annotated[ChatHarness, Depends(get_harness)],
+    daily_ai_limit: Annotated[int, Depends(get_daily_ai_limit)],
+) -> SummaryService:
+    return SummaryService(session, harness, daily_ai_limit)
+
+
+SummaryServiceDep = Annotated[SummaryService, Depends(get_summary_service)]

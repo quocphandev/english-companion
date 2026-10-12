@@ -3,7 +3,7 @@
 Methods only add/flush; committing (ending the transaction) is the service's job.
 """
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.models import Conversation, Correction, HelpRequest, Message, Profile
@@ -159,3 +159,21 @@ class ConversationRepository:
         self._session.add(help_request)
         self._session.flush()
         return help_request
+
+    def list_corrections(self, conversation_id: int) -> list[Correction]:
+        """Corrections of the learner's messages in this conversation, oldest first."""
+        return list(
+            self._session.scalars(
+                select(Correction)
+                .join(Message, Correction.message_id == Message.id)
+                .where(Message.conversation_id == conversation_id)
+                .order_by(Message.created_at, Message.id, Correction.id)
+            )
+        )
+
+    def count_help_requests(self, conversation_id: int) -> int:
+        return self._session.scalar(
+            select(func.count())
+            .select_from(HelpRequest)
+            .where(HelpRequest.conversation_id == conversation_id)
+        )

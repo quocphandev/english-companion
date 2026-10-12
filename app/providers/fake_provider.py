@@ -9,6 +9,8 @@ from app.schemas.ai import (
     HelpWord,
     LookupReply,
     SuggestedWord,
+    SummaryReply,
+    SummaryWord,
     TurnReply,
 )
 
@@ -44,11 +46,18 @@ DEFAULT_FAKE_LOOKUP = LookupReply(
     sentence_meaning_vi="Bản dịch câu do provider giả trả về.",
 )
 
+DEFAULT_FAKE_SUMMARY = SummaryReply(
+    recap_vi="Bạn đã luyện kể về một ngày của mình (tóm tắt do provider giả trả về).",
+    key_words=[SummaryWord(text="nice", meaning_vi="tốt, dễ chịu")],
+    next_exercise_vi="Kể lại ngày hôm qua bằng 3 câu dùng thì quá khứ đơn.",
+)
+
 # Canned answer for each output schema, keyed by the schema title.
 DEFAULT_FAKE_REPLIES: dict[str, BaseModel] = {
     "TurnReply": DEFAULT_FAKE_REPLY,
     "HelpReply": DEFAULT_FAKE_HELP,
     "LookupReply": DEFAULT_FAKE_LOOKUP,
+    "SummaryReply": DEFAULT_FAKE_SUMMARY,
 }
 
 

@@ -14,6 +14,7 @@ from fastapi.templating import Jinja2Templates
 from app.dependencies import (
     ConversationServiceDep,
     ReviewServiceDep,
+    SummaryServiceDep,
     VocabularyServiceDep,
 )
 from app.schemas.conversation import MAX_MESSAGE_CHARS
@@ -65,7 +66,10 @@ def home(request: Request, service: ConversationServiceDep) -> Response:
 
 @router.get("/conversations/{conversation_id}")
 def conversation_page(
-    request: Request, conversation_id: int, service: ConversationServiceDep
+    request: Request,
+    conversation_id: int,
+    service: ConversationServiceDep,
+    summaries: SummaryServiceDep,
 ) -> HTMLResponse:
     history = service.get_history(conversation_id)
     if history is None:
@@ -76,6 +80,7 @@ def conversation_page(
         {
             "conversations": service.list_conversations(),
             "conversation": history,
+            "summary": summaries.summary_of(conversation_id),
             "max_message_chars": MAX_MESSAGE_CHARS,
             "max_intent_chars": MAX_INTENT_CHARS,
         },

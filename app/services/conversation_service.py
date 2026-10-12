@@ -5,7 +5,11 @@ import logging
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.errors import conversation_not_found, request_id_conflict
+from app.errors import (
+    conversation_finished,
+    conversation_not_found,
+    request_id_conflict,
+)
 from app.harness.chat_harness import ChatHarness, TurnResult
 from app.harness.context import MAX_HISTORY_MESSAGES, ChatTurn, TurnContext
 from app.harness.prompts import PROMPT_VERSION
@@ -57,7 +61,9 @@ class ConversationService:
 
     def list_conversations(self) -> list[ConversationSummary]:
         return [
-            ConversationSummary(id=c.id, topic=c.topic, created_at=c.created_at)
+            ConversationSummary(
+                id=c.id, topic=c.topic, created_at=c.created_at, status=c.status
+            )
             for c in self._repository.list_conversations()
         ]
 
@@ -80,6 +86,7 @@ class ConversationService:
             topic=conversation.topic,
             level=conversation.level,
             correction_mode=conversation.correction_mode,
+            status=conversation.status,
             opener=to_message_out(opener) if opener is not None else None,
             turns=group_turns(messages),
         )
@@ -93,6 +100,11 @@ class ConversationService:
             raise conversation_not_found()
 
         existing = self._repository.find_message_by_request_id(request.request_id)
+        if conversation.status == "finished" and (
+            existing is None or existing.status == "failed"
+        ):
+            # A finished session takes no new turns (resending a done turn still works).
+            raise conversation_finished()
         if existing is not None:
             return self._handle_existing(conversation, existing, request)
 

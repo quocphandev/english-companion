@@ -79,3 +79,54 @@
   {% endif %}
 </article>
 {% endmacro %}
+
+{# FR10: end-of-session summary. Errors and words come from the database. #}
+{% macro render_summary(summary) %}
+{% set category_labels = {
+  "grammar": "Ngữ pháp",
+  "word_choice": "Dùng từ",
+  "spelling": "Chính tả",
+} %}
+<section class="session-summary" aria-labelledby="summary-title">
+  <h2 id="summary-title">Tổng kết buổi học</h2>
+  {% if summary.recap_vi %}
+  <p class="summary-recap">{{ summary.recap_vi }}</p>
+  {% elif summary.ai_error %}
+  <p class="summary-note">Chưa tạo được phần tóm tắt nội dung ({{ summary.ai_error.message_vi }}). Lỗi và từ của buổi học vẫn có bên dưới.</p>
+  {% endif %}
+  <h3>Lỗi cần ôn</h3>
+  {% if summary.errors %}
+  <ul class="summary-list">
+    {% for item in summary.errors %}
+    <li><span class="tag">{{ category_labels.get(item.category, item.category) }}</span>
+      <del>{{ item.original_span }}</del> → <ins>{{ item.corrected_text }}</ins>
+      <span class="muted">{{ item.explanation_vi }}</span></li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="muted">Không có lỗi nào được ghi nhận.</p>
+  {% endif %}
+  <h3>Từ quan trọng</h3>
+  {% if summary.words %}
+  <ul class="summary-list">
+    {% for word in summary.words %}
+    <li><strong lang="en">{{ word.text }}</strong>: {{ word.meaning_vi }}{% if word.saved %} <span class="badge">đã lưu</span>{% endif %}</li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="muted">Chưa có từ nào được lưu trong buổi này.</p>
+  {% endif %}
+  {% if summary.next_exercise_vi %}
+  <h3>Bài luyện tiếp theo</h3>
+  <p>{{ summary.next_exercise_vi }}</p>
+  {% endif %}
+  {% if summary.help_count %}
+  <p class="muted">Bạn đã dùng “Giúp tôi” {{ summary.help_count }} lần trong buổi này.</p>
+  {% endif %}
+  <div class="summary-actions">
+    <button type="button" class="button js-open-new-conversation">Bắt đầu cuộc trò chuyện mới</button>
+    <a class="button button-secondary" href="/review">Ôn từ đã lưu</a>
+  </div>
+</section>
+{% endmacro %}
+
