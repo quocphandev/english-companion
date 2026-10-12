@@ -125,6 +125,10 @@ def test_reader_bar_is_rendered_hidden_with_its_controls(client: TestClient) -> 
     assert 'id="reader-play"' in html
     assert 'id="reader-stop"' in html
     assert 'id="reader-filter"' in html
+    assert 'id="reader-prev"' in html
+    assert 'id="reader-next"' in html
+    assert '<option value="0.75">0,75</option>' in html
+    assert '<option value="1" selected>1,0</option>' in html
     assert "data-conversation-id" in html
 
 
@@ -150,3 +154,10 @@ def test_opening_question_is_shown_first_and_escaped(client: TestClient) -> None
     assert "&lt;b&gt;work&lt;/b&gt;" in html
     assert "<b>work</b>" not in html
     assert 'id="empty-hint"' not in html
+
+
+def test_static_files_are_revalidated_by_the_browser(client: TestClient) -> None:
+    response = client.get("/static/js/chat.js")
+
+    assert response.headers["cache-control"] == "no-cache"
+    assert "etag" in response.headers
