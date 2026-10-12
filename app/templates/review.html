@@ -1,0 +1,58 @@
+{% extends "_app_layout.html" %}
+{% from "_macros.html" import nav_toggle %}
+
+{% block title %}Ôn tập · English Companion{% endblock %}
+
+{% block main %}
+<header class="chat-header">
+  {{ nav_toggle() }}
+  <h1 class="chat-title">Ôn tập</h1>
+</header>
+<section class="page-body review-page">
+  {% if cards %}
+  <p id="review-progress" class="muted" role="status">Thẻ 1/{{ cards | length }}</p>
+  <div id="review-deck" class="review-deck">
+    {% for card in cards %}
+    <article class="flashcard" data-word-id="{{ card.id }}" aria-label="Thẻ {{ loop.index }}"
+             {% if not loop.first %}hidden{% endif %}>
+      <div class="flashcard-front">
+        <p class="flashcard-word" lang="en">{{ card.selected_text }}</p>
+        <span class="tag">{{ card.pos }}</span>
+        {% if card.cloze %}
+        <p class="flashcard-cloze" lang="en">{{ card.cloze }}</p>
+        {% endif %}
+        {% if card.last_outcome == "again" %}
+        <p class="muted flashcard-hint">Lần trước: chưa nhớ</p>
+        {% endif %}
+      </div>
+      <button type="button" class="button js-reveal">Hiện nghĩa</button>
+      <div class="flashcard-back" hidden>
+        <p class="flashcard-meaning">{{ card.meaning_vi }}</p>
+        <p class="flashcard-example" lang="en">{{ card.example_en }}</p>
+        <div class="flashcard-actions">
+          <button type="button" class="button button-secondary js-answer" data-outcome="again">Chưa nhớ</button>
+          <button type="button" class="button js-answer" data-outcome="remembered">Nhớ</button>
+        </div>
+        <p class="flashcard-status" role="status"></p>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  <section id="review-done" class="review-done" hidden>
+    <h2>Xong lượt ôn!</h2>
+    <p id="review-summary"></p>
+    <a class="button" href="/review">Ôn lượt mới</a>
+    <a class="button button-secondary" href="/vocabulary">Về sổ từ</a>
+  </section>
+  {% else %}
+  <div class="welcome">
+    <h2>Chưa có từ để ôn</h2>
+    <p>Bấm một từ trong câu trả lời của chatbot, rồi chọn “Lưu từ”. Từ đã lưu sẽ xuất hiện ở đây.</p>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}
+
+{% block page_scripts %}
+<script type="module" src="{{ url_for('static', path='js/vocab/review-page.js') }}"></script>
+{% endblock %}

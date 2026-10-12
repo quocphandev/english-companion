@@ -991,3 +991,98 @@ ins {
     padding: 12px;
   }
 }
+
+.vocab-search select {
+  padding: 6px 8px;
+  font: inherit;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+}
+
+/* --- Flashcard review (FR07) --- */
+
+.review-deck {
+  max-width: 560px;
+}
+
+.flashcard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.06);
+}
+
+.flashcard-front {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.flashcard-word {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.flashcard-cloze {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 1.05rem;
+  overflow-wrap: anywhere;
+}
+
+.flashcard-hint {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.flashcard-meaning {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.flashcard-example {
+  margin: 4px 0 0;
+  font-style: italic;
+  color: var(--color-muted);
+}
+
+.flashcard-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.flashcard-actions .button {
+  flex: 1;
+  min-height: 44px;
+}
+
+.flashcard-status {
+  margin: 6px 0 0;
+  color: var(--color-error);
+  font-size: 0.9rem;
+}
+
+.review-done {
+  max-width: 560px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.review-done h2,
+.review-done p {
+  flex-basis: 100%;
+  margin: 0;
+}
+
