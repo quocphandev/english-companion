@@ -116,6 +116,8 @@ Luồng: bấm micro → cấp quyền → bắt đầu thu → dừng → chuy�
 
 Nút Nghe xuất hiện ở câu trả lời, câu sửa và popup từ. Cho phép dừng và chọn tốc độ 0,75 hoặc 1,0. Không tự phát âm thanh. Khi giọng hoặc tính năng trình duyệt không có sẵn, hiển thị trạng thái thay vì làm hỏng hội thoại.
 
+**Đã làm sớm (12/10/2026), bản trình duyệt:** nút "Đọc hội thoại" dùng `speechSynthesis` đọc lần lượt các tin nhắn (cả hai bên hoặc chỉ chatbot), tạm dừng/tiếp tục, trước/sau, tốc độ 0,75 hoặc 1,0, chọn giọng Anh/Việt theo từng câu, báo khi thiếu giọng hoặc trình duyệt không hỗ trợ; không tự phát âm thanh. Nút Nghe riêng cho câu sửa và popup từ, cùng STT, vẫn thuộc giai đoạn 2.
+
 Bản đầu có thể dùng speech synthesis của trình duyệt. Speech recognition trên trình duyệt có mức hỗ trợ khác nhau; tính năng thu và chuyển lời nói cần adapter có thể thay thế bằng dịch vụ STT phía Python. Chọn nhà cung cấp và kiểm tra phí trước khi tích hợp. Không giả định Gemini API (generate_content) tự xử lý toàn bộ STT và TTS.
 
 ## FR10 Tổng kết cuối buổi

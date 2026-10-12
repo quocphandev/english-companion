@@ -68,12 +68,15 @@ Mốc 2: Gemini và sửa lỗi (Mốc 1 đã xong).
 - Câu mở đầu được giữ trong ngữ cảnh gửi cho AI, đặt sau một lượt user trung tính `(Start of the conversation.)`.
 - Test: `test_new_conversation_starts_with_the_chatbot_question`, `test_opening_question_is_shown_first_and_escaped`, `tests/unit/test_opener.py`.
 
-## Bước tiếp theo
-1. Đọc hội thoại, bước 3: Tạm dừng/Tiếp tục, Trước/Sau, tốc độ 0,75/1,0.
-2. Đọc hội thoại, bước 4: thông báo khi thiếu giọng hoặc trình duyệt không hỗ trợ; ghi chú FR09 trong SPEC; tài liệu `06`.
+## Đọc hội thoại (FR09, bản trình duyệt) — xong (merge từ `feat/FR09-reader-controls`)
+- Tạm dừng/Tiếp tục (tự làm bằng `cancel()`), Trước/Sau, tốc độ 0,75/1,0 (có hiệu lực từ câu sau).
+- Báo thiếu giọng một lần cho mỗi ngôn ngữ; trình duyệt không hỗ trợ thì hiện "Trình duyệt chưa hỗ trợ đọc".
+- Lỗi nghiêm trọng của trình duyệt (`not-allowed`, `synthesis-unavailable`...) thì dừng đọc, chat vẫn dùng bình thường.
+- Sửa thêm: file tĩnh có `Cache-Control: no-cache`, nên trình duyệt không chạy JS cũ sau khi cập nhật.
+- Ghi chú FR09 trong `docs/SPEC.md`; tài liệu `06`.
+- Test: `tests/js/reading-queue.test.mjs` (nextMessage, previousMessage), `test_reader_bar_is_rendered_hidden_with_its_controls`, `test_static_files_are_revalidated_by_the_browser`. Các trạng thái đã kiểm tra trên trình duyệt (Playwright).
 
-## Nợ tài liệu
-- `docs/learning/06-read-aloud.md`: làm cùng đọc hội thoại bước 4.
+## Bước tiếp theo
 
 ## Chờ quyết định
 - **Deploy public cho người khác test.** `CLAUDE.md` cấm khi chưa có đăng nhập, HTTPS và rate limit. Ngoài ra app đang dùng key Gemini của chủ dự án. Cần một kế hoạch riêng trước khi làm.

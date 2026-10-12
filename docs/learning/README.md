@@ -9,6 +9,7 @@ Mỗi việc xong có một file. Đọc theo thứ tự số; mỗi file chỉ 
 | 03 | [03-provider-harness.md](03-provider-harness.md) | Interface AIProvider, FakeProvider, schema Pydantic, harness sửa JSON | 1 |
 | 04 | [04-conversation-api.md](04-conversation-api.md) | API hội thoại: router/service/repository, 2 transaction, idempotency, lỗi có cấu trúc | 1 |
 | 05 | [05-chat-ui.md](05-chat-ui.md) | Trang chat: Jinja2 render phía server, `fetch`, chống XSS, CSP | 1 |
+| 06 | [06-read-aloud.md](06-read-aloud.md) | Đọc hội thoại bằng `speechSynthesis`, tạm dừng/trước/sau/tốc độ (FR09) | 2 |
 | 07 | [07-gemini-provider.md](07-gemini-provider.md) | GeminiProvider, lỗi có cấu trúc, hạn mức ngày `ai_runs` | 2 |
 | 08 | [08-corrections-eval.md](08-corrections-eval.md) | Prompt v2, thẻ sửa hai chế độ, bộ 30 câu đánh giá | 2 |
 | 09 | [09-help-when-stuck.md](09-help-when-stuck.md) | "Giúp tôi" 3 mức + ý tiếng Việt, harness tổng quát | 2 |
@@ -52,3 +53,5 @@ Mỗi việc xong có một file. Đọc theo thứ tự số; mỗi file chỉ 
 | data migration | Migration kèm chép/sửa dữ liệu cũ | 08 |
 | `<details>`/`<summary>` | Thu gọn/mở rộng không cần JS | 08 |
 | harness tổng quát `run_structured` | Một vòng lặp gọi–kiểm tra–sửa cho mọi schema | 09 |
+| `speechSynthesis`, `SpeechSynthesisUtterance` | Đọc chữ thành tiếng trong trình duyệt | 06 |
+| `Cache-Control: no-cache` | Trình duyệt luôn kiểm tra lại file tĩnh | 06 |
