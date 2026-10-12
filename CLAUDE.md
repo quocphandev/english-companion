@@ -43,6 +43,7 @@ alembic revision --autogenerate -m "msg" # tạo migration mới, PHẢI đọc 
 pytest                                   # chạy toàn bộ test
 pytest tests/unit -q                     # chạy nhanh phần unit
 $env:RUN_LIVE_AI="1"; pytest tests/live -s  # smoke test Gemini thật (PowerShell), CHỈ khi được yêu cầu, tối đa 3 call
+$env:RUN_LIVE_AI="1"; python -m scripts.run_eval  # chạy bộ 30 câu với Gemini thật, ghi eval_results/ để chấm
 node --test "tests/js/**/*.test.mjs"  # test JS thuần (Node 22, không npm, không thư viện)
 ruff check . && ruff format .            # lint và format
 ```
