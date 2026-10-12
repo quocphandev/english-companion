@@ -1,0 +1,41 @@
+{% extends "_app_layout.html" %}
+{% from "_macros.html" import nav_toggle %}
+
+{% block title %}Cài đặt · English Companion{% endblock %}
+
+{% block main %}
+<header class="chat-header">
+  {{ nav_toggle() }}
+  <h1 class="chat-title">Cài đặt</h1>
+</header>
+<section class="page-body settings-page">
+  <section class="settings-card" aria-labelledby="ai-title">
+    <h2 id="ai-title">AI</h2>
+    {% if ai_provider == "gemini" %}
+    <p>Đang dùng <strong>Gemini</strong> (Google){% if ai_model %}, model <code>{{ ai_model }}</code>{% endif %}.
+      Tin nhắn, câu cần tra nghĩa và nội dung buổi học được gửi tới Google để tạo phản hồi.</p>
+    <p>Hôm nay đã dùng <strong>{{ calls_today }}/{{ daily_limit }}</strong> lượt gọi AI.</p>
+    {% else %}
+    <p>Đang dùng <strong>AI giả lập</strong> (không gọi dịch vụ ngoài, không tính lượt).</p>
+    {% endif %}
+    <p class="muted">AI có thể sai. Hãy bấm “⚑ Cần xem lại” trên phản hồi chưa đúng.</p>
+  </section>
+
+  <section class="settings-card danger-zone" aria-labelledby="delete-all-title">
+    <h2 id="delete-all-title">Xóa toàn bộ dữ liệu học</h2>
+    <p>Xóa mọi cuộc trò chuyện, từ đã lưu, kết quả ôn tập và nghĩa đã tra. Không thể hoàn tác.</p>
+    <form id="delete-all-form" class="delete-all-form" novalidate>
+      <label class="field">
+        <span>Gõ <strong>{{ delete_confirmation }}</strong> để xác nhận</span>
+        <input name="confirm" autocomplete="off" maxlength="50">
+      </label>
+      <button type="submit" class="button button-danger">Xóa toàn bộ</button>
+      <p id="delete-all-status" class="form-error" role="alert"></p>
+    </form>
+  </section>
+</section>
+{% endblock %}
+
+{% block page_scripts %}
+<script type="module" src="{{ url_for('static', path='js/settings-page.js') }}"></script>
+{% endblock %}

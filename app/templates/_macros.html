@@ -75,6 +75,8 @@
   {% if turn.reply %}
   <div class="message message-assistant" data-role="assistant" data-message-id="{{ turn.reply.id }}">
     <p class="message-text">{{ turn.reply.text }}</p>
+    <button type="button" class="flag-button js-flag" aria-pressed="{{ 'true' if turn.reply.needs_review else 'false' }}"
+            title="Đánh dấu phản hồi này cần xem lại">⚑ {{ "Đã đánh dấu" if turn.reply.needs_review else "Cần xem lại" }}</button>
   </div>
   {% endif %}
 </article>

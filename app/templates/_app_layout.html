@@ -34,9 +34,10 @@
           <a href="/review" class="conversation-link{% if active_page == 'review' %} is-active{% endif %}"
              {% if active_page == 'review' %}aria-current="page"{% endif %}>Ôn tập</a>
         </li>
-      </ul>
-      <ul class="nav-upcoming" aria-label="Sắp có">
-        <li>Cài đặt <span class="badge">sắp có</span></li>
+        <li>
+          <a href="/settings" class="conversation-link{% if active_page == 'settings' %} is-active{% endif %}"
+             {% if active_page == 'settings' %}aria-current="page"{% endif %}>Cài đặt</a>
+        </li>
       </ul>
     </nav>
   </aside>

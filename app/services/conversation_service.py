@@ -271,4 +271,5 @@ def to_message_out(message: Message) -> MessageOut:
         text=message.original_text,
         status=message.status,
         created_at=message.created_at,
+        needs_review=message.needs_review,
     )
