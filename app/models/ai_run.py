@@ -14,7 +14,10 @@ class AiRun(Base):
 
     __tablename__ = "ai_runs"
     __table_args__ = (
-        CheckConstraint("operation IN ('chat_turn', 'eval')", name="operation"),
+        CheckConstraint(
+            "operation IN ('chat_turn', 'eval', 'help', 'lookup', 'summary', 'opener')",
+            name="operation",
+        ),
         CheckConstraint("status IN ('succeeded', 'failed')", name="status"),
         CheckConstraint("call_count >= 0", name="call_count"),
     )

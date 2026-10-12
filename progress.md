@@ -57,10 +57,15 @@ Mốc 2: Gemini và sửa lỗi (Mốc 1 đã xong).
 - **Chất lượng Gemini thật chưa được chấm:** chủ dự án tự chạy `python -m scripts.run_eval` rồi chấm file kết quả (bước này cần gọi API thật nên chưa chạy).
 - Sửa thêm một lỗi cũ: thuộc tính `hidden` bị CSS `.button` ghi đè (nút Dừng luôn hiện).
 
+## FR03, trợ giúp khi bí — xong (merge từ `feat/FR03-help`)
+- `POST /api/help`: mức 1 gợi ý từ, 2 mở đầu câu, 3 câu mẫu, hoặc ý tiếng Việt (`intent_vi`). Bảng `help_requests` lưu lịch sử dùng trợ giúp (migration `9aa185351c36`).
+- Giao diện: nút "Giúp tôi" mở khung trợ giúp trên ô nhập; "Chèn vào ô nhập" chỉ chèn, không gửi.
+- Phần chung: `run_structured` (harness cho mọi schema), `AiUsage` (hạn mức + `ai_runs`), FakeProvider theo schema.
+- **AC07 đạt**: `test_ac07_help_never_creates_a_message` và kiểm tra trên trình duyệt (chỉ gọi `/api/help`, không gọi API gửi tin).
+
 ## Bước tiếp theo
-1. FR03: trợ giúp khi bí (3 mức gợi ý và ý bằng tiếng Việt, AC07).
-2. Đọc hội thoại, bước 3: Tạm dừng/Tiếp tục, Trước/Sau, tốc độ 0,75/1,0.
-3. Đọc hội thoại, bước 4: thông báo khi thiếu giọng hoặc trình duyệt không hỗ trợ; ghi chú FR09 trong SPEC; tài liệu `06`.
+1. Đọc hội thoại, bước 3: Tạm dừng/Tiếp tục, Trước/Sau, tốc độ 0,75/1,0.
+2. Đọc hội thoại, bước 4: thông báo khi thiếu giọng hoặc trình duyệt không hỗ trợ; ghi chú FR09 trong SPEC; tài liệu `06`.
 
 ## Nợ tài liệu
 - `docs/learning/06-read-aloud.md`: làm cùng đọc hội thoại bước 4.

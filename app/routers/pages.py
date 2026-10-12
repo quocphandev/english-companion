@@ -13,6 +13,7 @@ from fastapi.templating import Jinja2Templates
 
 from app.dependencies import ConversationServiceDep
 from app.schemas.conversation import MAX_MESSAGE_CHARS
+from app.schemas.help import MAX_INTENT_CHARS
 
 TEMPLATES_DIR = Path(__file__).resolve().parents[1] / "templates"
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
@@ -72,5 +73,6 @@ def conversation_page(
             "conversations": service.list_conversations(),
             "conversation": history,
             "max_message_chars": MAX_MESSAGE_CHARS,
+            "max_intent_chars": MAX_INTENT_CHARS,
         },
     )

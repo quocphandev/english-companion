@@ -37,13 +37,19 @@ def build_system_prompt(context: TurnContext) -> str:
     )
 
 
-def build_messages(context: TurnContext) -> list[ProviderMessage]:
-    """Keep the most recent history, start with a user turn, end with the new text."""
-    recent = context.history[-MAX_HISTORY_MESSAGES:]
+def history_messages(history: list[ChatTurn]) -> list[ProviderMessage]:
+    """The most recent turns, trimmed so the conversation starts with a user turn."""
+    recent = history[-MAX_HISTORY_MESSAGES:]
     messages = [ProviderMessage(role=turn.role, content=turn.text) for turn in recent]
     # The provider expects the conversation to start with a user message.
     while messages and messages[0].role == "assistant":
         messages.pop(0)
+    return messages
+
+
+def build_messages(context: TurnContext) -> list[ProviderMessage]:
+    """Keep the most recent history, start with a user turn, end with the new text."""
+    messages = history_messages(context.history)
     messages.append(ProviderMessage(role="user", content=context.user_text))
     return messages
 

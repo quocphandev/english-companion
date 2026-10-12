@@ -5,13 +5,12 @@ import logging
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.errors import conversation_not_found, daily_limit_reached, request_id_conflict
+from app.errors import conversation_not_found, request_id_conflict
 from app.harness.chat_harness import ChatHarness, TurnResult
 from app.harness.context import MAX_HISTORY_MESSAGES, ChatTurn, TurnContext
 from app.harness.prompts import PROMPT_VERSION
 from app.models import Conversation, Message
 from app.providers.errors import ProviderError
-from app.repositories.ai_run_repository import AiRunRepository
 from app.repositories.conversation_repository import ConversationRepository
 from app.schemas.conversation import (
     ConversationHistory,
@@ -24,6 +23,7 @@ from app.schemas.conversation import (
     TurnView,
 )
 from app.schemas.error import ErrorBody
+from app.services.ai_usage import AiUsage
 from app.services.correction_view import build_correction_view
 
 logger = logging.getLogger(__name__)
@@ -35,9 +35,8 @@ class ConversationService:
     ) -> None:
         self._session = session
         self._repository = ConversationRepository(session)
-        self._ai_runs = AiRunRepository(session)
+        self._ai_usage = AiUsage(session, harness, daily_ai_limit)
         self._harness = harness
-        self._daily_ai_limit = daily_ai_limit
 
     def create_conversation(self, request: CreateConversationRequest) -> int:
         profile = self._repository.get_or_create_default_profile()
@@ -83,7 +82,7 @@ class ConversationService:
         if existing is not None:
             return self._handle_existing(conversation, existing, request)
 
-        self._ensure_within_daily_limit(conversation)
+        self._ai_usage.ensure_within_daily_limit(conversation.profile.timezone)
         # Transaction 1: save the user's text before calling the AI, so it is never lost.
         try:
             user_message = self._repository.add_user_message(
@@ -109,21 +108,10 @@ class ConversationService:
         if message.status != "failed":
             return self._build_response(message)
         # Failed: retry the AI on the same message instead of creating a new one.
-        self._ensure_within_daily_limit(conversation)
+        self._ai_usage.ensure_within_daily_limit(conversation.profile.timezone)
         message.status = "pending"
         self._session.commit()
         return self._run_turn(conversation, message)
-
-    def _ensure_within_daily_limit(self, conversation: Conversation) -> None:
-        """Refuse before saving or calling the AI when DAILY_AI_LIMIT is used up."""
-        if self._harness.provider_name == "fake":
-            return  # offline and free: never limited
-        used = self._ai_runs.count_calls_today(conversation.profile.timezone)
-        if used >= self._daily_ai_limit:
-            logger.info(
-                "Daily AI limit reached: used=%d limit=%d", used, self._daily_ai_limit
-            )
-            raise daily_limit_reached(self._daily_ai_limit)
 
     def _run_turn(
         self, conversation: Conversation, user_message: Message
@@ -163,15 +151,11 @@ class ConversationService:
         return self._build_response(user_message, error=failure_error(result))
 
     def _record_run(self, user_message: Message, result: TurnResult | None) -> None:
-        error = failure_error(result)
-        self._ai_runs.add_run(
+        self._ai_usage.record(
             operation="chat_turn",
             request_id=user_message.request_id,
-            provider=self._harness.provider_name,
-            model=self._harness.model_name,
             prompt_version=PROMPT_VERSION,
-            status="succeeded" if error is None else "failed",
-            error_code=error.code if error else None,
+            error=failure_error(result),
             # Unknown after an unexpected crash: count one call to stay on the safe side.
             call_count=result.attempts if result is not None else 1,
             duration_ms=result.duration_ms if result is not None else 0,

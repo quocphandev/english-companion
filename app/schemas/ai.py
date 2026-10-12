@@ -1,4 +1,4 @@
-"""Schemas for structured output returned by the AI for a chat turn."""
+"""Schemas for structured output returned by the AI (chat turn, help, ...)."""
 
 from typing import Literal
 
@@ -33,3 +33,20 @@ class TurnReply(BaseModel):
     reply_en: str = Field(min_length=1)
     corrections: list[Correction] = Field(default_factory=list, max_length=3)
     suggested_words: list[SuggestedWord] = Field(default_factory=list, max_length=3)
+
+
+class HelpWord(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    text: str = Field(min_length=1)
+    meaning_vi: str = Field(min_length=1)
+
+
+class HelpReply(BaseModel):
+    """Help when the learner is stuck (FR03). `hint_en` is what "Chèn vào ô nhập" inserts."""
+
+    model_config = ConfigDict(str_strip_whitespace=True, extra="ignore")
+
+    hint_en: str = Field(min_length=1, max_length=400)
+    words: list[HelpWord] = Field(default_factory=list, max_length=3)
+    explanation_vi: str = Field(min_length=1)

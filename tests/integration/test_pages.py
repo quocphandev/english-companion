@@ -126,3 +126,16 @@ def test_reader_bar_is_rendered_hidden_with_its_controls(client: TestClient) -> 
     assert 'id="reader-stop"' in html
     assert 'id="reader-filter"' in html
     assert "data-conversation-id" in html
+
+
+def test_help_panel_is_rendered_hidden_with_insert_button(client: TestClient) -> None:
+    conversation_id = create_conversation(client)
+
+    html = client.get(f"/conversations/{conversation_id}").text
+
+    assert 'id="help-toggle"' in html
+    assert 'aria-controls="help-panel"' in html
+    assert 'id="help-panel"' in html
+    assert "Chèn vào ô nhập" in html
+    for level in ("1", "2", "3"):
+        assert f'data-help-level="{level}"' in html

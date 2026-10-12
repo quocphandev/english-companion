@@ -319,6 +319,107 @@ function setupMobileNav() {
   }
 }
 
+// --- "Giúp tôi" (FR03): suggestions are only inserted, never sent (AC07) ---
+
+function setupHelp() {
+  const panel = document.getElementById("help-panel");
+  const toggle = document.getElementById("help-toggle");
+  const form = document.getElementById("message-form");
+  if (!panel || !toggle || !form) return;
+  const messageInput = document.getElementById("message-input");
+  const intentForm = document.getElementById("help-intent-form");
+  const intentInput = document.getElementById("help-intent");
+  const status = document.getElementById("help-status");
+  const result = document.getElementById("help-result");
+  const hint = document.getElementById("help-hint");
+  const words = document.getElementById("help-words");
+  const explanation = document.getElementById("help-explanation");
+  const insertButton = document.getElementById("help-insert");
+  const actionButtons = [...panel.querySelectorAll("[data-help-level], #help-intent-form button")];
+  const conversationId = Number(form.dataset.conversationId);
+  let isLoading = false;
+
+  function setOpen(open) {
+    panel.hidden = !open;
+    toggle.setAttribute("aria-expanded", String(open));
+    if (open) panel.querySelector("[data-help-level]")?.focus();
+  }
+
+  function setStatus(text, isError) {
+    status.textContent = text;
+    status.classList.toggle("is-error", Boolean(isError));
+  }
+
+  function showSuggestion(data) {
+    hint.textContent = data.hint_en;
+    words.replaceChildren(
+      ...data.words.map((word) => createElement("li", "", `${word.text}: ${word.meaning_vi}`)),
+    );
+    explanation.textContent = data.explanation_vi ?? "";
+    result.hidden = false;
+  }
+
+  async function requestHelp(level, intentVi) {
+    if (isLoading) return;
+    isLoading = true;
+    for (const button of actionButtons) button.disabled = true;
+    result.hidden = true;
+    setStatus("Đang tìm gợi ý…", false);
+    try {
+      const { ok, data } = await postJson("/api/help", {
+        conversation_id: conversationId,
+        level,
+        intent_vi: intentVi || null,
+      });
+      if (ok && data?.status === "succeeded") {
+        setStatus("", false);
+        showSuggestion(data);
+      } else {
+        setStatus(errorMessage(data), true);
+      }
+    } catch {
+      setStatus(MESSAGES.network, true);
+    } finally {
+      isLoading = false;
+      for (const button of actionButtons) button.disabled = false;
+    }
+  }
+
+  toggle.addEventListener("click", () => setOpen(panel.hidden));
+  panel.querySelector(".js-close-help").addEventListener("click", () => {
+    setOpen(false);
+    toggle.focus();
+  });
+  for (const button of panel.querySelectorAll("[data-help-level]")) {
+    button.addEventListener("click", () => requestHelp(Number(button.dataset.helpLevel)));
+  }
+  intentForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const idea = intentInput.value.trim();
+    if (!idea) {
+      setStatus("Bạn chưa nhập ý muốn nói.", true);
+      intentInput.focus();
+      return;
+    }
+    requestHelp(3, idea);
+  });
+  // Insert only: the learner edits the text and presses "Gửi" themselves.
+  insertButton.addEventListener("click", () => {
+    const current = messageInput.value.trimEnd();
+    messageInput.value = current ? `${current} ${hint.textContent}` : hint.textContent;
+    setOpen(false);
+    messageInput.focus();
+    messageInput.setSelectionRange(messageInput.value.length, messageInput.value.length);
+  });
+  panel.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      setOpen(false);
+      toggle.focus();
+    }
+  });
+}
+
 setupComposer();
 setupNewConversation();
 setupMobileNav();
+setupHelp();
