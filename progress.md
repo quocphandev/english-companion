@@ -81,6 +81,12 @@ Mốc 2: Gemini và sửa lỗi (Mốc 1 đã xong).
 - Giao diện: từ trong tin của chatbot bấm được; "Tra cụm" khi bôi đen chữ; chế độ "Chọn cụm" (chạm từ đầu rồi từ cuối, tối đa 8 từ); thẻ nghĩa hiện ngay dưới tin nhắn.
 - **AC05 đạt phần đường ống**: `test_ac05_book_as_noun_and_verb_are_separate_lookups`, `test_ac05_phrase_looks_after_is_looked_up_as_a_whole`; cache: `test_second_identical_lookup_comes_from_cache_without_ai`. Nghĩa thật do Gemini trả cần người kiểm tra.
 
+## Mốc 3 — FR06, lưu và quản lý từ — xong (merge từ `feat/FR06-vocabulary`)
+- Bảng `vocabulary` (unique `profile_id, lemma, meaning_key`) và `vocabulary_sources` (migration `645587332c7e`). Xóa tin nhắn thì mất liên kết, từ vẫn giữ.
+- `POST/GET/PATCH/DELETE /api/vocabulary`. Lưu dựa trên kết quả tra đã có trong cache (server tự đọc lại câu); người học sửa được nghĩa trước khi lưu.
+- Thẻ nghĩa có "Lưu từ"; trang "Từ vựng" có tìm kiếm, ghi chú, xóa có xác nhận. Thanh bên dùng chung qua `_app_layout.html`.
+- **AC06 đạt**: `test_ac06_same_word_same_meaning_is_not_duplicated`, `test_ac06_same_word_with_another_meaning_is_a_separate_entry`; giữ từ khi xóa tin nhắn: `test_deleting_the_message_keeps_the_word_but_drops_the_link`.
+
 ## Bước tiếp theo
 
 ## Chờ quyết định

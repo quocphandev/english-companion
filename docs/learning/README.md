@@ -15,6 +15,7 @@ Mỗi việc xong có một file. Đọc theo thứ tự số; mỗi file chỉ 
 | 09 | [09-help-when-stuck.md](09-help-when-stuck.md) | "Giúp tôi" 3 mức + ý tiếng Việt, harness tổng quát | 2 |
 | 10 | [10-opening-question.md](10-opening-question.md) | Chatbot mở đầu bằng câu hỏi (FR01) | 2 |
 | 11 | [11-word-lookup.md](11-word-lookup.md) | Bấm từ, chọn cụm, tra nghĩa theo ngữ cảnh, cache (FR05) | 3 |
+| 12 | [12-vocabulary.md](12-vocabulary.md) | Lưu từ không trùng, trang Từ vựng (FR06) | 3 |
 
 ## Từ điển nhanh (khái niệm và file giải thích lần đầu)
 
@@ -58,3 +59,6 @@ Mỗi việc xong có một file. Đọc theo thứ tự số; mỗi file chỉ 
 | `Cache-Control: no-cache` | Trình duyệt luôn kiểm tra lại file tĩnh | 06 |
 | code point vs UTF-16 | Cách Python và JS đếm vị trí ký tự | 11 |
 | cache theo ngữ cảnh, `ON CONFLICT DO NOTHING` | Tái dùng kết quả tra chỉ khi cùng câu và vùng chọn | 11 |
+| chuẩn hóa khóa, unique nhiều cột | Phát hiện trùng ở mức DB | 12 |
+| `<dialog method="dialog">` | Hộp xác nhận không cần `confirm()` | 12 |
+| kế thừa template nhiều tầng | Khung trang dùng chung | 12 |
