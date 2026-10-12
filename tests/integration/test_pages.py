@@ -1,5 +1,8 @@
 from fastapi.testclient import TestClient
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
+from app.models import Profile, Vocabulary
 from tests.fakes import ScriptedProvider
 from tests.integration.conftest import ProviderSetter
 
@@ -173,3 +176,32 @@ def test_chatbot_messages_carry_their_id_for_lookup(client: TestClient) -> None:
     assert html.count('data-role="assistant" data-message-id="') == 2
     assert 'id="phrase-mode"' in html
     assert "js/vocab/lookup.js" in html
+
+
+def test_vocabulary_page_lists_and_escapes_saved_words(
+    client: TestClient, db_session: Session
+) -> None:
+    assert client.post("/api/conversations", json={"topic": "work"}).status_code == 201
+    profile = db_session.scalars(select(Profile)).one()
+    db_session.add(
+        Vocabulary(
+            profile_id=profile.id,
+            lemma="book",
+            selected_text="book",
+            meaning_vi="<b>quyển sách</b>",
+            meaning_key="quyển sách",
+            pos="noun",
+            example_en="I read a book.",
+        )
+    )
+    db_session.flush()
+
+    html = client.get("/vocabulary").text
+    empty = client.get("/vocabulary", params={"q": "coffee"}).text
+
+    assert "Sổ từ vựng" in html
+    assert 'aria-current="page">Từ vựng</a>' in html
+    assert "&lt;b&gt;quyển sách&lt;/b&gt;" in html
+    assert "1 từ" in html
+    assert "Không có từ nào khớp." in empty
+    assert 'id="delete-word-dialog"' in html
