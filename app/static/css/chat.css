@@ -1086,3 +1086,54 @@ ins {
   margin: 0;
 }
 
+/* --- Session summary (FR10) --- */
+
+.session-summary {
+  overflow-y: auto;
+  max-height: 55vh;
+  padding: 16px 24px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  background: #f0fdf4;
+  border-top: 1px solid var(--color-border);
+}
+
+.session-summary h2 {
+  font-size: 1.1rem;
+}
+
+.session-summary h3 {
+  margin: 14px 0 6px;
+  font-size: 0.95rem;
+}
+
+.summary-recap {
+  margin: 8px 0 0;
+}
+
+.summary-note {
+  margin: 8px 0 0;
+  color: #92400e;
+}
+
+.summary-list {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.summary-list li + li {
+  margin-top: 4px;
+}
+
+.summary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+@media (max-width: 720px) {
+  .session-summary {
+    padding: 12px;
+  }
+}
+

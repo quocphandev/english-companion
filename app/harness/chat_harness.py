@@ -10,9 +10,10 @@ from app.harness.context import TurnContext, build_request
 from app.harness.help_context import HelpContext, build_help_request
 from app.harness.lookup_context import LookupContext, build_lookup_request
 from app.harness.prompts import REPAIR_INSTRUCTION_TEMPLATE
+from app.harness.summary_context import SummaryContext, build_summary_request
 from app.providers.ai_provider import AIProvider, ProviderMessage, ProviderRequest
 from app.providers.errors import ProviderError
-from app.schemas.ai import HelpReply, LookupReply, TurnReply
+from app.schemas.ai import HelpReply, LookupReply, SummaryReply, TurnReply
 from app.schemas.error import ErrorBody
 
 logger = logging.getLogger(__name__)
@@ -82,6 +83,12 @@ class ChatHarness:
         """FR05: value is a LookupReply when it succeeds."""
         return self.run_structured(
             build_lookup_request(context, self._max_output_tokens), LookupReply
+        )
+
+    def run_summary(self, context: SummaryContext) -> TaskResult:
+        """FR10: value is a SummaryReply when it succeeds."""
+        return self.run_structured(
+            build_summary_request(context, self._max_output_tokens), SummaryReply
         )
 
     def run_structured(

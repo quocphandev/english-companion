@@ -1,5 +1,5 @@
 {% extends "_app_layout.html" %}
-{% from "_macros.html" import render_turn, nav_toggle %}
+{% from "_macros.html" import render_turn, render_summary, nav_toggle %}
 
 {% block title %}{% if conversation %}{{ conversation.topic }} · {% endif %}English Companion{% endblock %}
 
@@ -10,6 +10,9 @@
       <h1 class="chat-title">{{ conversation.topic }}</h1>
       <button type="button" id="phrase-mode" class="button button-small button-secondary phrase-mode"
               aria-pressed="false" title="Chạm từ đầu rồi từ cuối của cụm để tra">Chọn cụm</button>
+      {% if conversation.status == "active" %}
+      <button type="button" id="finish-button" class="button button-small button-secondary">Kết thúc buổi</button>
+      {% endif %}
     </header>
     <div id="reader-bar" class="reader-bar" role="toolbar" aria-label="Đọc hội thoại" hidden>
       <button type="button" id="reader-play" class="button button-small" aria-pressed="false">▶ Đọc hội thoại</button>
@@ -49,6 +52,9 @@
       {% endif %}
       {% endfor %}
     </section>
+    {% if summary %}
+    {{ render_summary(summary) }}
+    {% else %}
     <section id="help-panel" class="help-panel" aria-labelledby="help-title" hidden>
       <div class="help-header">
         <h2 id="help-title" class="help-title">Giúp tôi nói tiếp</h2>
@@ -65,6 +71,17 @@
                   placeholder="Ví dụ: Tôi muốn nói là hôm nay tôi bị kẹt xe"></textarea>
         <button type="submit" class="button button-small">Diễn đạt giúp tôi</button>
       </form>
+    <dialog id="finish-dialog" class="dialog" aria-labelledby="finish-title">
+      <form method="dialog" class="dialog-form">
+        <h2 id="finish-title">Kết thúc buổi học?</h2>
+        <p>Bạn sẽ nhận bản tổng kết: lỗi cần ôn, từ quan trọng và bài luyện tiếp theo. Sau đó không gửi thêm tin trong cuộc trò chuyện này.</p>
+        <p id="finish-error" class="form-error" role="alert"></p>
+        <div class="dialog-actions">
+          <button value="cancel" class="button button-secondary">Học tiếp</button>
+          <button value="confirm" class="button">Kết thúc</button>
+        </div>
+      </form>
+    </dialog>
       <p id="help-status" class="help-status" role="status"></p>
       <div id="help-result" class="help-result" hidden>
         <p id="help-hint" class="help-hint" lang="en"></p>
@@ -83,6 +100,7 @@
       <button type="submit" id="send-button" class="button">Gửi</button>
       <p id="composer-status" class="composer-status" role="status"></p>
     </form>
+    {% endif %}
     {% else %}
     <header class="chat-header chat-header-compact">
       {{ nav_toggle() }}

@@ -422,5 +422,41 @@ function setupHelp() {
 
 setupComposer();
 setupNewConversation();
+// --- "Kết thúc buổi" (FR10): confirm, finish, then show the summary page ---
+
+function setupFinish() {
+  const button = document.getElementById("finish-button");
+  const dialog = document.getElementById("finish-dialog");
+  const form = document.getElementById("message-form");
+  if (!button || !dialog || !form) return;
+  const status = document.getElementById("composer-status");
+
+  button.addEventListener("click", () => dialog.showModal());
+  // The dialog form uses method="dialog": the pressed button's value becomes returnValue.
+  dialog.addEventListener("close", async () => {
+    if (dialog.returnValue !== "confirm") return;
+    button.disabled = true;
+    status.textContent = "Đang tạo bản tổng kết…";
+    status.classList.remove("is-error");
+    try {
+      const { ok, data } = await postJson(
+        `/api/conversations/${form.dataset.conversationId}/finish`,
+        {},
+      );
+      if (ok) {
+        window.location.reload();
+        return;
+      }
+      status.textContent = errorMessage(data);
+      status.classList.add("is-error");
+    } catch {
+      status.textContent = MESSAGES.network;
+      status.classList.add("is-error");
+    }
+    button.disabled = false;
+  });
+}
+
 setupMobileNav();
 setupHelp();
+setupFinish();

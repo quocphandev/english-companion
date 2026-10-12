@@ -72,3 +72,20 @@ class LookupReply(BaseModel):
     # Filled only when the context allows several readings.
     alternatives: list[LookupAlternative] = Field(default_factory=list, max_length=3)
     uncertainty_vi: str | None = None
+
+
+class SummaryWord(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    text: str = Field(min_length=1)
+    meaning_vi: str = Field(min_length=1)
+
+
+class SummaryReply(BaseModel):
+    """End-of-session summary (FR10). Errors are taken from the database, not from here."""
+
+    model_config = ConfigDict(str_strip_whitespace=True, extra="ignore")
+
+    recap_vi: str = Field(min_length=1)
+    key_words: list[SummaryWord] = Field(default_factory=list, max_length=5)
+    next_exercise_vi: str = Field(min_length=1)

@@ -94,6 +94,12 @@ Mốc 2: Gemini và sửa lỗi (Mốc 1 đã xong).
 - Test: `tests/integration/test_review_api.py` (ghi kết quả, thứ tự thẻ, câu khuyết, bộ lọc, trang), `tests/unit/test_review_cloze.py`.
 - Lịch ôn cách quãng và đưa từ vào hội thoại thuộc giai đoạn 3 (chưa làm).
 
+## Mốc 4 — FR10, kết thúc buổi và tổng kết — xong (merge từ `feat/FR10-summary`)
+- `POST /api/conversations/{id}/finish` (migration `297a91fab8db`): lỗi và từ lấy từ DB, AI viết tóm tắt và bài luyện tiếp theo; AI chỉ được thêm từ có xuất hiện trong hội thoại.
+- AI lỗi hoặc hết hạn mức vẫn kết thúc buổi; kết thúc lần hai không gọi AI; buổi đã xong thì chặn tin mới và trợ giúp (409).
+- Trang: nút "Kết thúc buổi" có hộp xác nhận; buổi đã xong thì hiện bản tổng kết thay ô nhập; thanh bên gắn nhãn "đã xong".
+- **AC04 đạt đủ** (phần tổng kết): `test_ac04_conversation_mode_errors_are_in_the_summary`. Test khác trong `tests/integration/test_summary_api.py`, `tests/unit/test_summary.py`.
+
 ## Bước tiếp theo
 
 ## Chờ quyết định
