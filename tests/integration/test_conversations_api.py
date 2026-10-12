@@ -5,10 +5,12 @@ from fastapi.testclient import TestClient
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.harness.context import CONVERSATION_START
 from app.harness.prompts import PROMPT_VERSION
 from app.models import Conversation, Correction, Message, Profile
 from app.repositories.conversation_repository import ConversationRepository
 from app.schemas.conversation import MAX_MESSAGE_CHARS
+from app.services.opener import build_opener
 from tests.fakes import FailingProvider, RecordingFakeProvider, ScriptedProvider
 from tests.integration.conftest import ProviderSetter
 
@@ -30,9 +32,11 @@ def send(client: TestClient, conversation_id: int, request_id: str, text: str) -
 
 
 def count_messages(db_session: Session, role: str) -> int:
-    return db_session.scalar(
-        select(func.count()).select_from(Message).where(Message.role == role)
-    )
+    """User messages, or chatbot replies (the opening question is not a reply)."""
+    query = select(func.count()).select_from(Message).where(Message.role == role)
+    if role == "assistant":
+        query = query.where(Message.reply_to_message_id.is_not(None))
+    return db_session.scalar(query)
 
 
 # --- POST /api/conversations -------------------------------------------------
@@ -121,12 +125,20 @@ def test_context_uses_only_this_conversation_history(
 
     second_turn = [m.content for m in provider.requests[1].messages]
     new_conversation = [m.content for m in provider.requests[2].messages]
+    first_opener = build_opener("work", "A2")
     assert second_turn == [
+        CONVERSATION_START,
+        first_opener,
         "I like coffee.",
         "That sounds nice! What did you do after that?",
         "I drink it every day.",
     ]
-    assert new_conversation == ["Hello!"]
+    # A new conversation only carries its own opening question.
+    assert new_conversation == [
+        CONVERSATION_START,
+        build_opener("coffee shop", "A2"),
+        "Hello!",
+    ]
 
 
 # --- AC01: input limits -------------------------------------------------------
@@ -353,3 +365,22 @@ def test_context_uses_the_conversation_own_settings(
     system = provider.requests[0].system
     assert "Learner level: A1" in system
     assert "Correction mode: learning" in system
+
+
+# --- FR01: the chatbot opens with a short question ------------------------------
+
+
+def test_new_conversation_starts_with_the_chatbot_question(
+    client: TestClient, db_session: Session
+) -> None:
+    conversation_id = create_conversation(client, topic="coffee shop", level="B1")
+
+    messages = db_session.scalars(
+        select(Message).where(Message.conversation_id == conversation_id)
+    ).all()
+    assert len(messages) == 1
+    opener = messages[0]
+    assert (opener.role, opener.status) == ("assistant", "succeeded")
+    assert opener.original_text == build_opener("coffee shop", "B1")
+    assert opener.request_id is None
+    assert opener.reply_to_message_id is None

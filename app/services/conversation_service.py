@@ -25,6 +25,7 @@ from app.schemas.conversation import (
 from app.schemas.error import ErrorBody
 from app.services.ai_usage import AiUsage
 from app.services.correction_view import build_correction_view
+from app.services.opener import build_opener
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +48,10 @@ class ConversationService:
         conversation = self._repository.create_conversation(
             profile.id, request.topic, request.level, request.correction_mode
         )
+        # FR01: the chatbot opens with a short question, saved with the conversation.
+        self._repository.add_assistant_message(
+            conversation.id, build_opener(request.topic, request.level)
+        )
         self._session.commit()
         return conversation.id
 
@@ -62,11 +67,20 @@ class ConversationService:
         if conversation is None:
             return None
         messages = self._repository.list_messages(conversation_id)
+        opener = next(
+            (
+                m
+                for m in messages
+                if m.role == "assistant" and m.reply_to_message_id is None
+            ),
+            None,
+        )
         return ConversationHistory(
             id=conversation.id,
             topic=conversation.topic,
             level=conversation.level,
             correction_mode=conversation.correction_mode,
+            opener=to_message_out(opener) if opener is not None else None,
             turns=group_turns(messages),
         )
 

@@ -70,7 +70,10 @@ def add_run(
 
 
 def count_messages(db_session: Session) -> int:
-    return db_session.scalar(select(func.count()).select_from(Message))
+    """Learner messages only (each conversation also starts with the chatbot's question)."""
+    return db_session.scalar(
+        select(func.count()).select_from(Message).where(Message.role == "user")
+    )
 
 
 # --- Recording runs ------------------------------------------------------------

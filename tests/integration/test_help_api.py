@@ -82,7 +82,10 @@ def test_ac07_help_never_creates_a_message(
 
     ask_help(client, conversation_id, level=3)
 
-    assert count(db_session, Message) == 0
+    learner_messages = db_session.scalar(
+        select(func.count()).select_from(Message).where(Message.role == "user")
+    )
+    assert learner_messages == 0
 
 
 def test_help_use_is_recorded_for_review_and_counted(
