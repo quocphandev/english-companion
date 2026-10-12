@@ -63,6 +63,11 @@ Mốc 2: Gemini và sửa lỗi (Mốc 1 đã xong).
 - Phần chung: `run_structured` (harness cho mọi schema), `AiUsage` (hạn mức + `ai_runs`), FakeProvider theo schema.
 - **AC07 đạt**: `test_ac07_help_never_creates_a_message` và kiểm tra trên trình duyệt (chỉ gọi `/api/help`, không gọi API gửi tin).
 
+## FR01, câu hỏi mở đầu — xong (merge từ `feat/FR01-opener`)
+- Hội thoại mới có sẵn một câu hỏi của chatbot, tạo theo mẫu (không gọi AI): không tốn lượt, không phải chờ, không lỗi.
+- Câu mở đầu được giữ trong ngữ cảnh gửi cho AI, đặt sau một lượt user trung tính `(Start of the conversation.)`.
+- Test: `test_new_conversation_starts_with_the_chatbot_question`, `test_opening_question_is_shown_first_and_escaped`, `tests/unit/test_opener.py`.
+
 ## Bước tiếp theo
 1. Đọc hội thoại, bước 3: Tạm dừng/Tiếp tục, Trước/Sau, tốc độ 0,75/1,0.
 2. Đọc hội thoại, bước 4: thông báo khi thiếu giọng hoặc trình duyệt không hỗ trợ; ghi chú FR09 trong SPEC; tài liệu `06`.
@@ -77,7 +82,7 @@ Mốc 2: Gemini và sửa lỗi (Mốc 1 đã xong).
 - `.venv` đang là Python 3.13.13, còn CLAUDE.md/Dockerfile là 3.12: nên thống nhất một phiên bản.
 - Khóa phiên bản dependency (`requirements.lock.txt`) theo yêu cầu bàn giao MVP.
 - SPEC mục 7–8 còn nhắc SQLite: cập nhật sang Postgres.
-- FR01: chatbot mở đầu bằng một câu hỏi ngắn khi tạo hội thoại.
+- FR01: có thể chuyển câu mở đầu sang do AI sinh (hiện dùng mẫu).
 - Lượt `pending` bị kẹt nếu server sập giữa lúc gọi AI: coi `pending` quá 65 giây là `failed` để thử lại được.
 - Lưu `suggested_words` (hiện chỉ có trong output AI, chưa lưu, chưa trả qua API).
 - Đưa giới hạn 2.000 ký tự (`MAX_MESSAGE_CHARS`) vào `Settings`.
