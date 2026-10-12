@@ -44,6 +44,8 @@
     <header class="chat-header">
       {{ nav_toggle() }}
       <h1 class="chat-title">{{ conversation.topic }}</h1>
+      <button type="button" id="phrase-mode" class="button button-small button-secondary phrase-mode"
+              aria-pressed="false" title="Chạm từ đầu rồi từ cuối của cụm để tra">Chọn cụm</button>
     </header>
     <div id="reader-bar" class="reader-bar" role="toolbar" aria-label="Đọc hội thoại" hidden>
       <button type="button" id="reader-play" class="button button-small" aria-pressed="false">▶ Đọc hội thoại</button>
@@ -70,7 +72,7 @@
     <section id="message-list" class="message-list" aria-label="Tin nhắn" aria-live="polite">
       {% if conversation.opener %}
       <article class="turn turn-opener">
-        <div class="message message-assistant" data-role="assistant">
+        <div class="message message-assistant" data-role="assistant" data-message-id="{{ conversation.opener.id }}">
           <p class="message-text">{{ conversation.opener.text }}</p>
         </div>
       </article>
@@ -171,4 +173,5 @@
 {% block scripts %}
 <script src="{{ url_for('static', path='js/chat.js') }}" defer></script>
 <script type="module" src="{{ url_for('static', path='js/conversation-reader.js') }}"></script>
+<script type="module" src="{{ url_for('static', path='js/vocab/lookup.js') }}"></script>
 {% endblock %}

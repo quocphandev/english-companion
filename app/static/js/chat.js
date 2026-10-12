@@ -118,6 +118,7 @@ function renderTurn(turn, mode) {
   if (turn.reply) {
     const reply = createElement("div", "message message-assistant");
     reply.dataset.role = "assistant";
+    reply.dataset.messageId = String(turn.reply.id);
     reply.append(createElement("p", "message-text", turn.reply.text));
     article.append(reply);
   }

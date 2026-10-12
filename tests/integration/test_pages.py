@@ -161,3 +161,15 @@ def test_static_files_are_revalidated_by_the_browser(client: TestClient) -> None
 
     assert response.headers["cache-control"] == "no-cache"
     assert "etag" in response.headers
+
+
+def test_chatbot_messages_carry_their_id_for_lookup(client: TestClient) -> None:
+    conversation_id = create_conversation(client)
+    send(client, conversation_id, "req-1", "Hello")
+
+    html = client.get(f"/conversations/{conversation_id}").text
+
+    # The opening question and the reply can both be looked up.
+    assert html.count('data-role="assistant" data-message-id="') == 2
+    assert 'id="phrase-mode"' in html
+    assert "js/vocab/lookup.js" in html
