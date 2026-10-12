@@ -87,6 +87,13 @@ Mốc 2: Gemini và sửa lỗi (Mốc 1 đã xong).
 - Thẻ nghĩa có "Lưu từ"; trang "Từ vựng" có tìm kiếm, ghi chú, xóa có xác nhận. Thanh bên dùng chung qua `_app_layout.html`.
 - **AC06 đạt**: `test_ac06_same_word_same_meaning_is_not_duplicated`, `test_ac06_same_word_with_another_meaning_is_a_separate_entry`; giữ từ khi xóa tin nhắn: `test_deleting_the_message_keeps_the_word_but_drops_the_link`.
 
+## Mốc 4 — FR07, ôn tập thủ công (MVP) — xong (merge từ `feat/FR07-review`)
+- Bảng `review_events` (migration `9c34ce25e825`); `POST /api/reviews`, `GET /api/reviews/deck`.
+- Trang "Ôn tập": mặt trước là từ kèm câu khuyết (từ câu nguồn, hoặc từ câu ví dụ), mặt sau là nghĩa và ví dụ; Nhớ / Chưa nhớ; tổng kết cuối lượt.
+- Thứ tự: chưa ôn, rồi chưa nhớ, rồi đã nhớ. Trang Từ vựng lọc được chưa ôn / đã ôn.
+- Test: `tests/integration/test_review_api.py` (ghi kết quả, thứ tự thẻ, câu khuyết, bộ lọc, trang), `tests/unit/test_review_cloze.py`.
+- Lịch ôn cách quãng và đưa từ vào hội thoại thuộc giai đoạn 3 (chưa làm).
+
 ## Bước tiếp theo
 
 ## Chờ quyết định
