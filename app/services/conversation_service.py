@@ -24,6 +24,7 @@ from app.schemas.conversation import (
     TurnView,
 )
 from app.schemas.error import ErrorBody
+from app.services.correction_view import build_correction_view
 
 logger = logging.getLogger(__name__)
 
@@ -40,10 +41,13 @@ class ConversationService:
 
     def create_conversation(self, request: CreateConversationRequest) -> int:
         profile = self._repository.get_or_create_default_profile()
-        # Settings chosen when starting a conversation become the profile settings.
+        # The conversation keeps its own settings; the profile remembers the
+        # latest choice as the default for the next conversation.
         profile.level = request.level
         profile.correction_mode = request.correction_mode
-        conversation = self._repository.create_conversation(profile.id, request.topic)
+        conversation = self._repository.create_conversation(
+            profile.id, request.topic, request.level, request.correction_mode
+        )
         self._session.commit()
         return conversation.id
 
@@ -60,7 +64,11 @@ class ConversationService:
             return None
         messages = self._repository.list_messages(conversation_id)
         return ConversationHistory(
-            id=conversation.id, topic=conversation.topic, turns=group_turns(messages)
+            id=conversation.id,
+            topic=conversation.topic,
+            level=conversation.level,
+            correction_mode=conversation.correction_mode,
+            turns=group_turns(messages),
         )
 
     def send_message(
@@ -175,10 +183,9 @@ class ConversationService:
         history = self._repository.list_recent_turns(
             conversation.id, limit=MAX_HISTORY_MESSAGES
         )
-        profile = conversation.profile
         return TurnContext(
-            level=profile.level,
-            correction_mode=profile.correction_mode,
+            level=conversation.level,
+            correction_mode=conversation.correction_mode,
             topic=conversation.topic,
             summary=conversation.summary,
             history=[ChatTurn(role=m.role, text=m.original_text) for m in history],
@@ -189,13 +196,15 @@ class ConversationService:
         self, user_message: Message, error: ErrorBody | None = None
     ) -> SendMessageResponse:
         reply = self._repository.get_reply(user_message.id)
+        corrections = to_corrections_out(user_message)
         return SendMessageResponse(
             status=user_message.status,
             message=to_message_out(user_message),
             reply=to_message_out(reply) if reply is not None else None,
-            corrections=[
-                CorrectionOut.model_validate(c) for c in user_message.corrections
-            ],
+            corrections=corrections,
+            correction_view=build_correction_view(
+                user_message.original_text, corrections
+            ),
             error=error,
         )
 
@@ -205,15 +214,27 @@ def group_turns(messages: list[Message]) -> list[TurnView]:
     replies = {
         m.reply_to_message_id: m for m in messages if m.reply_to_message_id is not None
     }
-    return [
-        TurnView(
-            message=to_message_out(m),
-            reply=to_message_out(replies[m.id]) if m.id in replies else None,
-            corrections=[CorrectionOut.model_validate(c) for c in m.corrections],
+    turns = []
+    for message in messages:
+        if message.role != "user":
+            continue
+        corrections = to_corrections_out(message)
+        reply = replies.get(message.id)
+        turns.append(
+            TurnView(
+                message=to_message_out(message),
+                reply=to_message_out(reply) if reply is not None else None,
+                corrections=corrections,
+                correction_view=build_correction_view(
+                    message.original_text, corrections
+                ),
+            )
         )
-        for m in messages
-        if m.role == "user"
-    ]
+    return turns
+
+
+def to_corrections_out(message: Message) -> list[CorrectionOut]:
+    return [CorrectionOut.model_validate(c) for c in message.corrections]
 
 
 def ensure_same_request(

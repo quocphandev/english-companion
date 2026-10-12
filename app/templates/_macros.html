@@ -1,11 +1,62 @@
 {# Markup for one turn. static/js/chat.js builds the same structure for new turns. #}
-{% macro render_turn(turn) %}
+
+{% macro render_segments(segments, tag) -%}
+{#- No whitespace between pieces: it would show up inside the sentence. -#}
+{%- for segment in segments -%}
+{%- if segment.changed -%}<{{ tag }}>{{ segment.text }}</{{ tag }}>{%- else -%}{{ segment.text }}{%- endif -%}
+{%- endfor -%}
+{%- endmacro %}
+
+{% macro render_items(items) %}
 {% set category_labels = {
   "grammar": "Ngữ pháp",
   "word_choice": "Dùng từ",
   "spelling": "Chính tả",
   "naturalness": "Tự nhiên hơn",
 } %}
+<ul class="correction-list">
+  {% for item in items %}
+  <li class="correction-item">
+    <span class="tag">{{ category_labels.get(item.category, item.category) }}</span>
+    <del>{{ item.original_span }}</del> → <ins>{{ item.corrected_text }}</ins>
+    <p class="correction-explanation">{{ item.explanation_vi }}</p>
+  </li>
+  {% endfor %}
+</ul>
+{% endmacro %}
+
+{#
+  Learning mode: the card is open right away.
+  Conversation mode: the card starts closed; its summary is the "Xem lỗi" button.
+#}
+{% macro render_correction_card(view, mode) %}
+{% set count = view.errors | length + view.suggestions | length %}
+{% if mode == "learning" %}
+  {% set label = "Gợi ý sửa" if view.errors else "Gợi ý diễn đạt (tùy chọn)" %}
+{% else %}
+  {% set label = "Xem lỗi" if view.errors else "Xem gợi ý" %}
+{% endif %}
+<details class="correction-card correction-card-{{ mode }}"{% if mode == "learning" %} open{% endif %}>
+  <summary>{{ label }} ({{ count }})</summary>
+  {% if view.corrected %}
+  <dl class="correction-sentences">
+    <dt>Câu gốc</dt>
+    <dd>{{ render_segments(view.original, "del") }}</dd>
+    <dt>Câu sửa</dt>
+    <dd>{{ render_segments(view.corrected, "ins") }}</dd>
+  </dl>
+  {% endif %}
+  {% if view.errors %}{{ render_items(view.errors) }}{% endif %}
+  {% if view.suggestions %}
+  <section class="correction-suggestions">
+    <h3 class="correction-subheading">Gợi ý diễn đạt tự nhiên hơn (tùy chọn)</h3>
+    {{ render_items(view.suggestions) }}
+  </section>
+  {% endif %}
+</details>
+{% endmacro %}
+
+{% macro render_turn(turn, mode) %}
 <article class="turn">
   <div class="message message-user{% if turn.message.status == 'failed' %} is-failed{% endif %}" data-role="user">
     <p class="message-text">{{ turn.message.text }}</p>
@@ -15,20 +66,7 @@
     <p class="message-note">Đang xử lý…</p>
     {% endif %}
   </div>
-  {% if turn.corrections %}
-  <details class="correction-card" open>
-    <summary>Gợi ý sửa ({{ turn.corrections | length }})</summary>
-    <ul class="correction-list">
-      {% for item in turn.corrections %}
-      <li class="correction-item">
-        <span class="tag">{{ category_labels.get(item.category, item.category) }}</span>
-        <del>{{ item.original_span }}</del> → <ins>{{ item.corrected_text }}</ins>
-        <p class="correction-explanation">{{ item.explanation_vi }}</p>
-      </li>
-      {% endfor %}
-    </ul>
-  </details>
-  {% endif %}
+  {% if turn.correction_view %}{{ render_correction_card(turn.correction_view, mode) }}{% endif %}
   {% if turn.reply %}
   <div class="message message-assistant" data-role="assistant">
     <p class="message-text">{{ turn.reply.text }}</p>
