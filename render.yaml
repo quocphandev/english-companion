@@ -1,0 +1,30 @@
+# Render Blueprint: describes the public demo service as code.
+# Secrets (sync: false) are typed into the Render dashboard, never stored here.
+services:
+  - type: web
+    name: english-companion
+    runtime: docker
+    plan: free
+    region: singapore
+    branch: master
+    healthCheckPath: /health
+    envVars:
+      # Neon connection string; "postgresql://" is converted to the psycopg driver.
+      - key: DATABASE_URL
+        sync: false
+      - key: APP_PASSWORD
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: AI_PROVIDER
+        value: gemini
+      - key: GEMINI_MODEL
+        value: gemini-3.5-flash-lite
+      - key: GEMINI_THINKING_LEVEL
+        value: minimal
+      - key: PUBLIC_DEMO
+        value: "true"
+      - key: RATE_LIMIT_PER_MINUTE
+        value: "10"
+      - key: DAILY_AI_LIMIT
+        value: "50"
