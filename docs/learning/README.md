@@ -21,6 +21,7 @@ Mỗi việc xong có một file. Đọc theo thứ tự số; mỗi file chỉ 
 | 15 | [15-data-controls.md](15-data-controls.md) | Xóa hội thoại / xóa toàn bộ, cờ ⚑, trang Cài đặt | 4 |
 | 16 | [16-mvp-handover.md](16-mvp-handover.md) | README, `requirements.lock.txt`, dữ liệu demo, bảng nghiệm thu | 4 |
 | 17 | [17-public-deploy.md](17-public-deploy.md) | Mật khẩu chung, rate limit, chế độ demo, deploy Render + Neon | sau MVP |
+| 18 | [18-harness-and-stack-guide.md](18-harness-and-stack-guide.md) | **Sổ tay tổng hợp**: harness AI và mọi công nghệ trong dự án, kèm ví dụ và bài tập | tổng hợp |
 
 ## Từ điển nhanh (khái niệm và file giải thích lần đầu)
 
