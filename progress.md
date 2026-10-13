@@ -127,12 +127,20 @@ MVP (Mốc 1–4) đã xong. Mốc 5 (giọng nói: micro, STT) chưa bắt đ�
 
 AC09, AC10 thuộc Mốc 5 (giọng nói), chưa làm.
 
+## Bản demo public (Render + Neon) — code xong (merge từ `feat/deploy-render`)
+- Mật khẩu chung `APP_PASSWORD` (HTTP Basic, trừ `/health`); rate limit `RATE_LIMIT_PER_MINUTE` theo IP cho các endpoint gọi AI (429 `rate_limited`); `PUBLIC_DEMO=true` tắt xóa (403 `deleting_disabled`) và bắt buộc có mật khẩu.
+- Dockerfile: Python 3.13 + `requirements.lock.txt`, migration khi khởi động, cổng `$PORT`; sửa lỗi `adduser`. `render.yaml` (Blueprint). README có hướng dẫn deploy.
+- Test: `tests/unit/test_security.py`, `test_public_demo_disables_deleting`. Đã chạy container thật với AI giả trên DB trống `english_companion_deploycheck`: migration, 401/200, 429 ở tin thứ 4, xóa bị 403.
+- **Chưa deploy thật**: cần chủ dự án tạo tài khoản Neon, Render, key Gemini riêng (xem README).
+- **Chưa cập nhật quy tắc trong `CLAUDE.md`** (Claude bị chặn tự sửa file quy tắc): chủ dự án tự sửa mục Bảo mật và "Ngoài phạm vi".
+
 ## Bước tiếp theo
 - Chủ dự án chạy `$env:RUN_LIVE_AI="1"; python -m scripts.run_eval` rồi chấm file trong `eval_results/` để chốt chất lượng AC02, AC03, AC05.
+- Deploy bản demo theo README (Neon + Render), rồi mở link thử.
 - Quyết định có bắt đầu Mốc 5 hay không (chọn nhà cung cấp STT, chi phí).
 
 ## Chờ quyết định
-- **Deploy public cho người khác test.** `CLAUDE.md` cấm khi chưa có đăng nhập, HTTPS và rate limit. Ngoài ra app đang dùng key Gemini của chủ dự án. Cần một kế hoạch riêng trước khi làm.
+- Xóa DB thử `english_companion_deploycheck` trên Postgres local (chỉ chứa dữ liệu thử).
 
 ## Ý tưởng sau (không làm bây giờ)
 - `.venv` đang là Python 3.13.13, còn CLAUDE.md/Dockerfile là 3.12: nên thống nhất một phiên bản, rồi cho Dockerfile cài từ `requirements.lock.txt`.
@@ -146,6 +154,8 @@ AC09, AC10 thuộc Mốc 5 (giọng nói), chưa làm.
 - Console Windows mặc định cp1252 nên `print` chữ tiếng Việt bị lỗi: đặt `PYTHONIOENCODING=utf-8` khi chạy script thử.
 - Hiện giờ gửi theo múi giờ profile (Postgres đổi được múi giờ; hoặc thêm `tzdata`, phải hỏi trước).
 - Thêm `favicon.ico` (console báo 404, vô hại).
+- Bản demo: đăng nhập theo từng người để mỗi người có dữ liệu riêng (hiện dùng chung một profile).
+- Rate limit: chỉ tin IP cuối do proxy Render thêm vào thay vì `--forwarded-allow-ips='*'`.
 - Test e2e tự động bằng trình duyệt trong `tests/e2e` (cần thêm Playwright cho Python, phải hỏi trước).
 - Thử lại một lượt `failed` ngay trong lịch sử sau khi tải lại trang.
 - Điền sẵn trình độ/cách sửa của profile vào hộp thoại tạo hội thoại.

@@ -20,6 +20,7 @@ Mỗi việc xong có một file. Đọc theo thứ tự số; mỗi file chỉ 
 | 14 | [14-session-summary.md](14-session-summary.md) | Kết thúc buổi, tổng kết không bịa (FR10) | 4 |
 | 15 | [15-data-controls.md](15-data-controls.md) | Xóa hội thoại / xóa toàn bộ, cờ ⚑, trang Cài đặt | 4 |
 | 16 | [16-mvp-handover.md](16-mvp-handover.md) | README, `requirements.lock.txt`, dữ liệu demo, bảng nghiệm thu | 4 |
+| 17 | [17-public-deploy.md](17-public-deploy.md) | Mật khẩu chung, rate limit, chế độ demo, deploy Render + Neon | sau MVP |
 
 ## Từ điển nhanh (khái niệm và file giải thích lần đầu)
 
@@ -73,3 +74,7 @@ Mỗi việc xong có một file. Đọc theo thứ tự số; mỗi file chỉ 
 | cụm xác nhận gõ tay | Chặn hành động không hoàn tác được | 15 |
 | lock file, `pip freeze` | Ghim đúng phiên bản thư viện đã thử | 16 |
 | seed idempotent | Dữ liệu mẫu, chạy nhiều lần vẫn như một | 16 |
+| middleware, HTTP Basic Auth | Lớp bọc kiểm tra mọi request; mật khẩu do trình duyệt hỏi | 17 |
+| rate limit cửa sổ trượt | Giới hạn số lần gọi trong 60 giây gần nhất | 17 |
+| reverse proxy, `X-Forwarded-For` | Lấy IP thật khi app đứng sau proxy HTTPS | 17 |
+| infrastructure as code | Cấu hình server viết thành file trong repo | 17 |

@@ -79,6 +79,36 @@ Muốn chấm chất lượng sửa lỗi với Gemini thật (khoảng 30–60 
 
 Kết quả ghi vào `eval_results/` để người chấm.
 
+## Deploy bản demo public (Render + Neon, miễn phí)
+
+Bản demo dùng **chung một bộ dữ liệu**. Ai có mật khẩu cũng thấy hội thoại và từ vựng của nhau, nên chức năng xóa bị tắt. Đừng dùng bản demo để học thật.
+
+1. **Tạo database ở Neon** (https://neon.tech):
+   - Đăng ký và tạo project. Nên chọn region gần Singapore.
+   - Copy *connection string*, dạng `postgresql://user:pass@ep-....neon.tech/neondb?sslmode=require`. Để nguyên dạng này; app tự đổi sang driver psycopg.
+2. **Tạo key Gemini mới** chỉ dùng cho bản demo, để có thể thu hồi riêng.
+3. **Tạo service ở Render** (https://render.com):
+   - Đăng ký bằng GitHub.
+   - Vào **New → Blueprint**, chọn repo này. Render đọc `render.yaml` và hỏi 3 giá trị bí mật:
+     - `DATABASE_URL`: connection string của Neon;
+     - `GEMINI_API_KEY`: key mới ở bước 2;
+     - `APP_PASSWORD`: mật khẩu dài, ngẫu nhiên.
+   - Các biến khác đã khai báo sẵn trong `render.yaml`:
+     - `AI_PROVIDER=gemini`
+     - `PUBLIC_DEMO=true`
+     - `RATE_LIMIT_PER_MINUTE=10`
+     - `DAILY_AI_LIMIT=50`
+4. **Đợi build xong** (vài phút):
+   - Mỗi lần khởi động, container tự chạy `alembic upgrade head` rồi mới bật app.
+   - Mở link `https://english-companion-xxxx.onrender.com`. Trình duyệt hiện hộp đăng nhập: tên gõ gì cũng được, mật khẩu là `APP_PASSWORD`.
+5. **Gửi link và mật khẩu cho người thử**, qua hai kênh riêng nếu được.
+
+Lưu ý:
+- **Bản free của Render ngủ** sau khoảng 15 phút không ai dùng. Lần vào đầu tiên sau đó mất khoảng 30–60 giây để khởi động.
+- Mỗi lần push lên `master`, Render tự build lại.
+- **Tắt bản demo:** vào Render chọn *Suspend* service, rồi thu hồi key Gemini ở AI Studio.
+- **Thử image trên máy:** `docker build -t english-companion .`
+
 ## Gặp lỗi
 - **`alembic` hoặc app treo khi kết nối DB:** dùng `127.0.0.1`, không dùng `localhost`, trong `DATABASE_URL`.
 - **Test báo `TEST_DATABASE_URL is not set`:** điền biến này trong `.env` và tạo DB test bằng lệnh `createdb` ở trên.

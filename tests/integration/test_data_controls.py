@@ -1,12 +1,16 @@
 """Mốc 4: deleting a conversation or all learning data, and flagging chatbot replies."""
 
 import json
+from collections.abc import Iterator
 from typing import Any
 
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.dependencies import get_allow_delete
+from app.main import app
 from app.models import (
     AiRun,
     Conversation,
@@ -181,3 +185,32 @@ def test_settings_page_offers_delete_all(client: TestClient) -> None:
     assert 'aria-current="page">Cài đặt</a>' in html
     assert DELETE_ALL_CONFIRMATION in html
     assert 'id="delete-all-form"' in html
+
+
+@pytest.fixture
+def public_demo() -> Iterator[None]:
+    app.dependency_overrides[get_allow_delete] = lambda: False
+    yield
+    app.dependency_overrides.pop(get_allow_delete, None)
+
+
+@pytest.mark.usefixtures("public_demo")
+def test_public_demo_disables_deleting(
+    client: TestClient, db_session: Session, use_provider: ProviderSetter
+) -> None:
+    conversation_id, _ = full_session(client, use_provider)
+
+    one = client.delete(f"/api/conversations/{conversation_id}")
+    everything = client.post(
+        "/api/data/delete-all", json={"confirm": DELETE_ALL_CONFIRMATION}
+    )
+    chat = client.get(f"/conversations/{conversation_id}").text
+    settings = client.get("/settings").text
+
+    assert one.status_code == 403
+    assert one.json()["code"] == "deleting_disabled"
+    assert everything.status_code == 403
+    assert count(db_session, Conversation) == 1
+    assert 'id="delete-conversation"' not in chat
+    assert 'id="delete-all-form"' not in settings
+    assert "bản demo dùng chung" in settings
