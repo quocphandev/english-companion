@@ -7,8 +7,10 @@ from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
 from starlette.types import Scope
 
+from app.config import get_settings
 from app.errors import register_error_handlers
 from app.routers import conversations, data, help, lookup, pages, reviews, vocabulary
+from app.security import install_security
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 
@@ -27,6 +29,7 @@ class RevalidatedStaticFiles(StaticFiles):
 
 app = FastAPI(title="English Companion")
 register_error_handlers(app)
+install_security(app, get_settings())
 app.mount("/static", RevalidatedStaticFiles(directory=STATIC_DIR), name="static")
 app.include_router(conversations.router)
 app.include_router(help.router)
