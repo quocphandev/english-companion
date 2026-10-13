@@ -5,9 +5,9 @@ always shown as text, never run as HTML or script.
 """
 
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
 
-from fastapi import APIRouter, Request, status
+from fastapi import APIRouter, Depends, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
@@ -18,6 +18,7 @@ from app.dependencies import (
     ReviewServiceDep,
     SummaryServiceDep,
     VocabularyServiceDep,
+    get_allow_delete,
 )
 from app.schemas.conversation import MAX_MESSAGE_CHARS
 from app.schemas.help import MAX_INTENT_CHARS
@@ -38,6 +39,8 @@ SECURITY_HEADERS = {
 }
 
 router = APIRouter(include_in_schema=False)
+
+AllowDeleteDep = Annotated[bool, Depends(get_allow_delete)]
 
 
 def render(
@@ -73,6 +76,7 @@ def conversation_page(
     conversation_id: int,
     service: ConversationServiceDep,
     summaries: SummaryServiceDep,
+    allow_delete: AllowDeleteDep,
 ) -> HTMLResponse:
     history = service.get_history(conversation_id)
     if history is None:
@@ -87,6 +91,7 @@ def conversation_page(
             "ai_provider": get_settings().ai_provider,
             "max_message_chars": MAX_MESSAGE_CHARS,
             "max_intent_chars": MAX_INTENT_CHARS,
+            "allow_delete": allow_delete,
         },
     )
 
@@ -135,7 +140,10 @@ def review_page(
 
 @router.get("/settings")
 def settings_page(
-    request: Request, conversations: ConversationServiceDep, data: DataServiceDep
+    request: Request,
+    conversations: ConversationServiceDep,
+    data: DataServiceDep,
+    allow_delete: AllowDeleteDep,
 ) -> HTMLResponse:
     """AI provider info, today's usage and "delete all learning data"."""
     settings = get_settings()
@@ -153,5 +161,6 @@ def settings_page(
             "calls_today": data.calls_today(),
             "daily_limit": settings.daily_ai_limit,
             "delete_confirmation": DELETE_ALL_CONFIRMATION,
+            "allow_delete": allow_delete,
         },
     )

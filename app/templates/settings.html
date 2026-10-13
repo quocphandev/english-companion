@@ -23,6 +23,7 @@
 
   <section class="settings-card danger-zone" aria-labelledby="delete-all-title">
     <h2 id="delete-all-title">Xóa toàn bộ dữ liệu học</h2>
+    {% if allow_delete %}
     <p>Xóa mọi cuộc trò chuyện, từ đã lưu, kết quả ôn tập và nghĩa đã tra. Không thể hoàn tác.</p>
     <form id="delete-all-form" class="delete-all-form" novalidate>
       <label class="field">
@@ -32,6 +33,9 @@
       <button type="submit" class="button button-danger">Xóa toàn bộ</button>
       <p id="delete-all-status" class="form-error" role="alert"></p>
     </form>
+    {% else %}
+    <p>Đây là bản demo dùng chung: mọi người thử cùng thấy một bộ dữ liệu, nên chức năng xóa đã tắt.</p>
+    {% endif %}
   </section>
 </section>
 {% endblock %}

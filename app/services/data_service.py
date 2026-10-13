@@ -35,12 +35,24 @@ def reply_not_found() -> AppError:
     )
 
 
+def deleting_disabled() -> AppError:
+    return AppError(
+        "deleting_disabled",
+        "Bản demo dùng chung dữ liệu nên đã tắt chức năng xóa.",
+        http_status=status.HTTP_403_FORBIDDEN,
+    )
+
+
 class DataService:
-    def __init__(self, session: Session) -> None:
+    def __init__(self, session: Session, *, allow_delete: bool = True) -> None:
         self._session = session
         self._conversations = ConversationRepository(session)
+        # False in a shared public demo, where one visitor could wipe everyone's data.
+        self._allow_delete = allow_delete
 
     def delete_conversation(self, conversation_id: int) -> None:
+        if not self._allow_delete:
+            raise deleting_disabled()
         conversation = self._conversations.get_conversation(conversation_id)
         if conversation is None:
             raise conversation_not_found()
@@ -48,6 +60,8 @@ class DataService:
         self._session.commit()
 
     def delete_all(self, confirmation: str) -> None:
+        if not self._allow_delete:
+            raise deleting_disabled()
         if confirmation.strip().upper() != DELETE_ALL_CONFIRMATION:
             raise confirmation_mismatch()
         profile = self._conversations.get_or_create_default_profile()

@@ -114,8 +114,15 @@ def get_summary_service(
 SummaryServiceDep = Annotated[SummaryService, Depends(get_summary_service)]
 
 
-def get_data_service(session: Annotated[Session, Depends(get_session)]) -> DataService:
-    return DataService(session)
+def get_allow_delete() -> bool:
+    return not get_settings().public_demo
+
+
+def get_data_service(
+    session: Annotated[Session, Depends(get_session)],
+    allow_delete: Annotated[bool, Depends(get_allow_delete)],
+) -> DataService:
+    return DataService(session, allow_delete=allow_delete)
 
 
 DataServiceDep = Annotated[DataService, Depends(get_data_service)]
